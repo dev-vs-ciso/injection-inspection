@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# project specific files and experiments like databases
+*.db
+experiment/*
+
 # C extensions
 *.so
 

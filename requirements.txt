@@ -1,0 +1,10 @@
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+faker
+psycopg2-binary
+pyodbc
+python-dateutil
+python-dotenv
+Flask-Migrate
