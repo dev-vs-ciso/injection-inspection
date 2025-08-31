@@ -1,10 +1,18 @@
+# Core Flask dependencies
 flask
 flask-sqlalchemy
 flask-login
 werkzeug
-faker
+
+# Database drivers
 psycopg2-binary
 pyodbc
+
+# Data generation and utilities
+faker
 python-dateutil
 python-dotenv
 Flask-Migrate
+
+# For health checks and monitoring
+requests

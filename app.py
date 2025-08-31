@@ -105,4 +105,4 @@ if __name__ == '__main__':
     # It checks if the DEBUG variable is set to "true", "1", or "t" (case-insensitive).
     # If no DEBUG variable is set, it defaults to "False".
     debuglevel = os.getenv("DEBUG", "False").lower() in ["true", "1", "t"]
-    app.run(debug=debuglevel)
+    app.run(host='0.0.0.0', port=5000, debug=debuglevel)

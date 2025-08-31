@@ -1,0 +1,90 @@
+# Git and version control
+.git
+.gitignore
+*.md
+!README.md
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.venv/
+venv/
+ENV/
+env/
+.env.local
+.env.*.local
+.env
+
+# Local databases
+.db
+
+# Local shell commands
+setup.sh
+setup.bat
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+experiment/
+*.md
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local database files (we'll use Docker databases)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment files (these contain secrets)
+.env*
+!.env.postgres
+!.env.sqlserver
+
+# Build and dist directories
+build/
+dist/
+*.egg-info/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation build
+docs/_build/
+
+# IDE and editor files
+*.sublime-project
+*.sublime-workspace
+
+# Backup files
+*.bak
+*.backup
+
+# Experiment directory as mentioned in .gitignore
+experiment/

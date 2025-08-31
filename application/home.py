@@ -12,7 +12,16 @@ def index():
     Shows basic stats pulled from database
     """
     # Get database statistics for display
-    stats = get_database_stats()
+    try:
+        stats = get_database_stats()
+    except Exception as e:
+        print(f"Database not ready: {e}")
+        stats = {
+            "total_users": 0,
+            "total_transactions": 0,
+            "total_volume": 0,
+            "monthly_volume": 0
+        }
     
     return render_template('index.html', stats=stats)
 

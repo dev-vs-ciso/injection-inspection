@@ -6,6 +6,7 @@ Populates the database with sample users and transactions for testing purposes
 import sys
 import random
 import time
+import string
 from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
@@ -59,8 +60,15 @@ def generate_account_number():
     return f"{random.randint(100000000000, 999999999999)}"
 
 
+def generate_random_password(length=12):
+    """Generate a random password with specified length"""
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+
 # Global set to track used reference numbers during population
 used_reference_numbers = set()
+
 
 def generate_reference_number():
     """Generate a unique transaction reference number"""
@@ -88,12 +96,12 @@ def generate_reference_number():
     return reference
 
 
-def create_users(count=35):
+def create_users(count=None):
     """
     Create sample user accounts with realistic data
     Returns list of created users
     """
-    users = []
+    users_with_passwords = []
     used_emails = set()
     used_account_numbers = set()
     
@@ -114,6 +122,9 @@ def create_users(count=35):
                 used_account_numbers.add(account_number)
                 break
         
+        # Generate random 12-character password
+        password = generate_random_password(12)
+
         # Create user with secure password
         user = User(
             email=email,
@@ -126,20 +137,21 @@ def create_users(count=35):
         )
         
         # Set a random but reasonable password (for training purposes)
-        passwords = ['password123', 'training456', 'demo789', 'secure123', 'test456']
-        user.set_password(random.choice(passwords))
+        user.set_password(password)
         
-        users.append(user)
-        
+        # Store both user and password
+        users_with_passwords.append((user, password))
+
         if (i + 1) % 10 == 0:
             print(f"  Created {i + 1}/{count} users...")
     
     # Add users to database session
+    users = [user for user, _ in users_with_passwords]
     db.session.add_all(users)
     db.session.commit()
     
     print(f"✓ Successfully created {len(users)} users")
-    return users
+    return users_with_passwords
 
 
 def create_transactions_for_user(user, transaction_count=None):
@@ -257,8 +269,9 @@ def populate_database():
         used_reference_numbers.clear()
         
         # Create users
+        user_count = random.randint(30, 50)
         print("\n1️⃣ Creating user accounts...")
-        users = create_users()
+        users_with_passwords = create_users(user_count)
         
         # Commit users first to get their IDs
         db.session.commit()
@@ -268,7 +281,9 @@ def populate_database():
         print("\n2️⃣ Creating transactions...")
         total_transactions = 0
         all_transactions = []
-        
+
+        users = [user for user, _ in users_with_passwords]
+
         for i, user in enumerate(users):
             transaction_count = random.randint(70, 100)
             transactions = create_transactions_for_user(user, transaction_count)
@@ -300,10 +315,10 @@ def populate_database():
         print(f"   Average transactions per user: {total_transactions // len(users)}")
         
         # Return a random user for login testing
-        test_user = random.choice(users)
+        test_user, test_password = random.choice(users_with_passwords)
         return {
             'email': test_user.email,
-            'password': 'password123',  # We know this is one of the possible passwords
+            'password': test_password,  # We know this is one of the possible passwords
             'name': test_user.get_full_name(),
             'account_number': test_user.account_number
         }
