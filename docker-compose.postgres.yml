@@ -46,7 +46,7 @@ services:
       LOCAL_TEST: ${LOCAL_TEST:-False}
       
       # Application Configuration
-      BANK_NAME: ${BANK_NAME:-Tessier-Ashpool}
+      BANK_NAME: ${BANK_NAME:-Kerata-Zemke}
     ports:
       - "5000:5000"
     depends_on:

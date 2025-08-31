@@ -69,7 +69,7 @@ class Config:
     
 
     # Application settings
-    BANK_NAME = "Tessier-Ashpool"
+    BANK_NAME = "Kerata-Zemke"
     TRANSACTIONS_PER_PAGE = 20
 
 

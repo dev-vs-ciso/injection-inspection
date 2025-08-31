@@ -165,7 +165,7 @@ DB_PASS = 'password'
 
 ```python
 SECRET_KEY = 'your-secret-key-here'
-BANK_NAME = "Tessier-Ashpool"
+BANK_NAME = "Kerata-Zemke"
 PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 ```
 
