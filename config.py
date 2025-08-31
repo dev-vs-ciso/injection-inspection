@@ -69,7 +69,7 @@ class Config:
     
 
     # Application settings
-    BANK_NAME = "SecureBank Training"
+    BANK_NAME = "Tessier-Ashpool"
     TRANSACTIONS_PER_PAGE = 20
 
 

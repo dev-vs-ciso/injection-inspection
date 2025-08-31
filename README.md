@@ -165,7 +165,7 @@ DB_PASS = 'password'
 
 ```python
 SECRET_KEY = 'your-secret-key-here'
-BANK_NAME = "SecureBank Training"
+BANK_NAME = "Tessier-Ashpool"
 PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 ```
 

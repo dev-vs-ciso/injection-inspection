@@ -51,7 +51,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-bank me-2"></i>{{ BANK_NAME }}
+                <i class="bi bi-cpu me-2"></i>{{ BANK_NAME }}
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -101,12 +101,6 @@
         </div>
     </nav>
 
-    <!-- Security Warning Banner for Training -->
-    <div class="alert alert-security border-0 rounded-0 mb-0 text-center" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        <strong>Training Environment:</strong> This is a simulated banking application for security training purposes only.
-    </div>
-
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -131,7 +125,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2025 {{ BANK_NAME }} - Security Training Application</p>
+                    <p class="mb-0">&copy; 2025 {{ BANK_NAME }}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <small class="text-muted">

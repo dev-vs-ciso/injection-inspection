@@ -17,7 +17,7 @@
                 </a>
                 <small class="text-muted d-block mt-2">
                     <i class="bi bi-info-circle me-1"></i>
-                    This is a training environment. Use the credentials provided by your instructor.
+                    This is a training environment.
                 </small>
             </p>
             {% else %}
@@ -29,14 +29,14 @@
             {% endif %}
         </div>
         <div class="col-lg-4 text-center">
-            <i class="bi bi-bank display-1 text-primary"></i>
+            <i class="bi bi-cpu display-1 text-primary"></i>
         </div>
     </div>
 
     <!-- Bank Statistics -->
     <div class="row mb-5">
         <div class="col-12">
-            <h2 class="h4 mb-4">Bank Overview</h2>
+            <h2 class="h4 mb-4">Overview</h2>
         </div>
         <div class="col-md-3 mb-3">
             <div class="card card-stats h-100">
@@ -84,67 +84,10 @@
         </div>
     </div>
 
-    {% if not current_user.is_authenticated %}
-    <!-- Quick Login Form -->
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Account Access
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-envelope"></i>
-                                </span>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-lock"></i>
-                                </span>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                            <label class="form-check-label" for="remember_me">
-                                Remember me
-                            </label>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-muted">
-                    <small>
-                        <i class="bi bi-shield-check me-1"></i>
-                        Secure login protected by industry-standard encryption
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Features Section -->
     <div class="row mt-5">
         <div class="col-12">
-            <h2 class="h4 mb-4">Banking Services</h2>
+            <h2 class="h4 mb-4">Services</h2>
         </div>
         <div class="col-md-4 mb-4">
             <div class="card h-100">

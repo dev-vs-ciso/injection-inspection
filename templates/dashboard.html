@@ -9,8 +9,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h3 mb-1">Welcome back, {{ current_user.first_name }}!</h1>
-                    <p class="text-muted mb-0">Account: {{ current_user.account_number }}</p>
+                    <h3>Account: {{ current_user.account_number }} | {{ current_user.first_name }} {{ current_user.last_name }}</h3>
                 </div>
             </div>
         </div>
@@ -99,9 +98,6 @@
                         <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-person me-2"></i>View Profile
                         </a>
-                        <button type="button" class="btn btn-outline-info" onclick="window.print()">
-                            <i class="bi bi-printer me-2"></i>Print Statement
-                        </button>
                     </div>
                 </div>
             </div>

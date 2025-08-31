@@ -37,7 +37,6 @@ def login():
             
             # Login successful
             login_user(user, remember=remember_me)
-            flash(f'Welcome back, {user.first_name}!', 'success')
             
             # Redirect to intended page or dashboard
             next_url = session.pop('next_url', None)
@@ -55,7 +54,6 @@ def logout():
     Clears session and redirects to home page
     """
     logout_user()
-    flash('You have been logged out successfully.', 'info')
     return redirect(url_for('index'))
 
 
