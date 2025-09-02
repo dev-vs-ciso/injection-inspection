@@ -321,9 +321,10 @@
                                 <button type="button" class="btn btn-outline-secondary" onclick="printResults()">
                                     <i class="bi bi-printer me-1"></i>Print
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="exportToCSV()">
-                                    <i class="bi bi-download me-1"></i>Export
-                                </button>
+                                <!-- Replace the existing Export button with this -->
+                                <a href="{{ url_for('export_transactions') }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-download me-1"></i>Advanced Export
+                                </a>
                             </div>
                         </div>
                     </div>

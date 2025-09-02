@@ -14,7 +14,7 @@ from application.errors import register_error_handlers
 from application.home import index, dashboard
 from application.user import login, logout, profile
 from application.api import api_stats
-from application.transaction import transaction_detail, search
+from application.transaction import transaction_detail, search, export_transactions
 # Load environment variables
 load_dotenv()
 
@@ -89,6 +89,7 @@ def create_app(config_class=Config):
     # Create transaction routes
     app.add_url_rule('/transaction/<int:transaction_id>', 'transaction_detail', transaction_detail)
     app.add_url_rule('/search', 'search', search, methods=['GET', 'POST'])
+    app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
 
     # Create api routes
     app.add_url_rule('/api/stats', 'api_stats', api_stats)

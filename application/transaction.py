@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import or_, and_, text
 from models import db, User, Transaction
 from decorators import login_required, anonymous_required, active_user_required
+import subprocess
 
 
 @active_user_required
@@ -270,3 +271,62 @@ def get_transaction_by_reference(reference_number):
         print(f"Reference lookup error: {e}")
         return None
 
+
+@active_user_required  
+def export_transactions():
+    """
+    VULNERABLE: Export transactions with customizable filename and format
+    Contains command injection via filename and format parameters
+    """
+    if request.method == 'POST':
+        export_format = request.form.get('format', 'csv').strip()
+        filename = request.form.get('filename', 'transactions').strip()
+        date_range = request.form.get('date_range', '30').strip()
+        
+        # Get user's transactions
+        days = int(date_range) if date_range.isdigit() else 30
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        transactions = Transaction.query.filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= cutoff_date
+        ).order_by(Transaction.date.desc()).all()
+
+        # VULNERABILITY: User input directly passed to shell command
+        export_path = f"/tmp/exports/{filename}.{export_format}"
+        
+        try:
+            # Create directory and file with command injection vulnerability
+            command = f"mkdir -p /tmp/exports && touch {export_path}"
+            
+            
+            # Execute the vulnerable command
+            print(f"DEBUG: Executing command: {command}")
+            subprocess.run(command, shell=True, capture_output=True, text=True)
+            
+            # Generate actual CSV content
+            with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Date', 'Company', 'Type', 'Amount', 'Balance', 'Reference'])
+                
+                for txn in transactions:
+                    writer.writerow([
+                        txn.date.strftime('%Y-%m-%d %H:%M:%S'),
+                        txn.company,
+                        txn.transaction_type,
+                        txn.amount,
+                        txn.balance_after,
+                        txn.reference_number
+                    ])
+            
+            # Send file back to user
+            return send_file(
+                export_path,
+                as_attachment=True,
+                download_name=f"{filename}.{export_format}",
+                mimetype='text/csv'
+            )
+            
+        except Exception as e:
+            flash(f'Export error: {str(e)}', 'error')
+    
+    return render_template('export.html')
