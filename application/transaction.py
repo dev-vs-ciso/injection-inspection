@@ -5,7 +5,8 @@ from sqlalchemy import or_, and_, text
 from models import db, User, Transaction
 from decorators import login_required, anonymous_required, active_user_required
 import subprocess
-
+import csv
+import os
 
 @active_user_required
 def transaction_detail(transaction_id):
@@ -278,31 +279,35 @@ def export_transactions():
     VULNERABLE: Export transactions with customizable filename and format
     Contains command injection via filename and format parameters
     """
+    export_results = None
+
     if request.method == 'POST':
-        export_format = request.form.get('format', 'csv').strip()
         filename = request.form.get('filename', 'transactions').strip()
         date_range = request.form.get('date_range', '30').strip()
-        
+
+        export_format = 'csv'
+
+        print(export_format, filename, date_range)
         # Get user's transactions
         days = int(date_range) if date_range.isdigit() else 30
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now() - timedelta(days=days)
         transactions = Transaction.query.filter(
             Transaction.user_id == current_user.id,
             Transaction.date >= cutoff_date
         ).order_by(Transaction.date.desc()).all()
 
         # VULNERABILITY: User input directly passed to shell command
-        export_path = f"/tmp/exports/{filename}.{export_format}"
+        export_path = f"/tmp/exports/{filename}"
         
         try:
             # Create directory and file with command injection vulnerability
             command = f"mkdir -p /tmp/exports && touch {export_path}"
             
-            
+    
             # Execute the vulnerable command
             print(f"DEBUG: Executing command: {command}")
-            subprocess.run(command, shell=True, capture_output=True, text=True)
-            
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
             # Generate actual CSV content
             with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
@@ -318,15 +323,57 @@ def export_transactions():
                         txn.reference_number
                     ])
             
-            # Send file back to user
-            return send_file(
-                export_path,
-                as_attachment=True,
-                download_name=f"{filename}.{export_format}",
-                mimetype='text/csv'
-            )
+            # Prepare results for template display
+            export_results = {
+                'success': result.returncode == 0,
+                'filename': f"{filename}.{export_format}",
+                'transaction_count': len(transactions),
+                'output': result.stdout,
+                'error': result.stderr,
+                'file_exists': os.path.exists(export_path)
+            }
             
+            if result.returncode == 0:
+                flash(f'Export generated successfully! results: {result.stdout}, {result.stderr}', 'success')
+            else:
+                flash('Export command failed. See details below.', 'error')
+
+            # # Send file back to user
+            # return send_file(
+            #     export_path,
+            #     as_attachment=True,
+            #     download_name=f"{filename}.{export_format}",
+            #     mimetype='text/csv'
+            # )
+
         except Exception as e:
             flash(f'Export error: {str(e)}', 'error')
+            export_results = {
+                'success': False,
+                'filename': f"{filename}.{export_format}",
+                'error': str(e)
+            }
     
-    return render_template('export.html')
+    return render_template('export.html', export_results=export_results)
+
+
+@active_user_required
+def download_export_file():
+    """Download the generated export file"""
+    filename = request.args.get('filename', 'transactions.csv')
+    file_path = f"/tmp/exports/{filename.replace('.csv', '')}"  # Remove extension since we add it in export
+    
+    try:
+        if os.path.exists(file_path):
+            return send_file(
+                file_path,
+                as_attachment=True,
+                download_name=filename,
+                mimetype='text/csv'
+            )
+        else:
+            flash('Export file not found. Please generate a new export.', 'error')
+            return redirect(url_for('export_transactions'))
+    except Exception as e:
+        flash(f'Download error: {str(e)}', 'error')
+        return redirect(url_for('export_transactions'))

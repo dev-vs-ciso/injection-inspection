@@ -9,8 +9,9 @@ class Config:
     """Base configuration class with default settings"""
     
     # Flask settings
-    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32).hex()    
-    
+    # SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-for-development-only'
+
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
     

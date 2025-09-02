@@ -20,7 +20,7 @@
                     <h1 class="h3 mb-1">
                         <i class="bi bi-download me-2"></i>Export Transactions
                     </h1>
-                    <p class="text-muted mb-0">Generate and download your transaction data in various formats</p>
+                    <p class="text-muted mb-0">Generate and download your transaction data in CSV format</p>
                 </div>
                 <div>
                     <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
@@ -51,15 +51,6 @@
                                 <div class="form-text">Custom filename for your export (without extension)</div>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="format" class="form-label">Export Format</label>
-                                <select class="form-select" id="format" name="format">
-                                    <option value="csv" {{ 'selected' if request.form.format == 'csv' }}>CSV (Comma Separated)</option>
-                                    <option value="xlsx" {{ 'selected' if request.form.format == 'xlsx' }}>Excel Spreadsheet</option>
-                                    <option value="json" {{ 'selected' if request.form.format == 'json' }}>JSON Data</option>
-                                    <option value="txt" {{ 'selected' if request.form.format == 'txt' }}>Plain Text</option>
-                                </select>
-                            </div>
                         </div>
                         
                         <div class="row">
@@ -120,96 +111,66 @@
         </div>
     </div>
 
-    <!-- Export Results -->
-    {% if export_results %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-terminal me-2"></i>Export Results
-                    </h5>
-                    {% if export_results.success %}
-                    <span class="badge bg-success">Export Successful</span>
-                    {% else %}
-                    <span class="badge bg-danger">Export Failed</span>
-                    {% endif %}
+<!-- Export Results -->
+{% if export_results %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-terminal me-2"></i>Export Results
+                </h5>
+                {% if export_results.success %}
+                <span class="badge bg-success">Export Successful</span>
+                {% else %}
+                <span class="badge bg-danger">Export Failed</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Export File:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <code>{{ export_results.filename }}</code>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Export File:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            <code>{{ export_results.filename }}</code>
-                        </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Records Processed:</strong>
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Records Processed:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ export_results.transaction_count }} transactions
-                        </div>
+                    <div class="col-sm-9">
+                        {{ export_results.transaction_count }} transactions
                     </div>
-                    
-                    {% if export_results.command_executed %}
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>Command Executed:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            <div class="alert alert-warning p-2">
-                                <small class="font-monospace">{{ export_results.command_executed }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if export_results.output %}
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <strong>System Output:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            <div class="alert alert-info p-2">
-                                <pre class="mb-0 small">{{ export_results.output }}</pre>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if export_results.error %}
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <strong>Error Details:</strong>
-                        </div>
-                        <div class="col-sm-9">
-                            <div class="alert alert-danger p-2">
-                                <small>{{ export_results.error }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
+                             
+                <!-- Download Button -->
+                {% if export_results.success and export_results.file_exists %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-grid gap-2 d-md-block">
+                            <a href="{{ url_for('download_export_file', filename=export_results.filename) }}" 
+                               class="btn btn-success btn-lg">
+                                <i class="bi bi-download me-2"></i>Download CSV File
+                            </a>
+                            <a href="{{ url_for('export_transactions') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Generate New Export
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    {% endif %}
+</div>
+{% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Show/hide custom options based on format selection
-document.getElementById('format').addEventListener('change', function() {
-    const customSection = document.getElementById('custom_options').closest('.col-12');
-    if (this.value === 'custom') {
-        customSection.style.display = 'block';
-    }
-});
-
 // Form validation
 document.querySelector('form').addEventListener('submit', function(e) {
     const filename = document.getElementById('filename').value.trim();

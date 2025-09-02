@@ -14,7 +14,7 @@ from application.errors import register_error_handlers
 from application.home import index, dashboard
 from application.user import login, logout, profile
 from application.api import api_stats
-from application.transaction import transaction_detail, search, export_transactions
+from application.transaction import transaction_detail, search, export_transactions, download_export_file
 # Load environment variables
 load_dotenv()
 
@@ -90,6 +90,7 @@ def create_app(config_class=Config):
     app.add_url_rule('/transaction/<int:transaction_id>', 'transaction_detail', transaction_detail)
     app.add_url_rule('/search', 'search', search, methods=['GET', 'POST'])
     app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
+    app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])
 
     # Create api routes
     app.add_url_rule('/api/stats', 'api_stats', api_stats)
@@ -105,5 +106,8 @@ if __name__ == '__main__':
     # are typically strings. This code converts the DEBUG variable to a boolean.
     # It checks if the DEBUG variable is set to "true", "1", or "t" (case-insensitive).
     # If no DEBUG variable is set, it defaults to "False".
-    debuglevel = os.getenv("DEBUG", "False").lower() in ["true", "1", "t"]
+    if os.getenv("DB_HOST"):
+        debuglevel = False
+    else:
+        debuglevel = True
     app.run(host='0.0.0.0', port=5000, debug=debuglevel)
