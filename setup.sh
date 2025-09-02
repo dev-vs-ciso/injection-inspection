@@ -94,6 +94,8 @@ start_postgres() {
     print_color $GREEN "Banking Application: http://localhost:5000"
     print_color $GREEN "pgAdmin (Database Management): http://localhost:8080"
     print_color $YELLOW "pgAdmin Login: admin@example.com / admin123"
+    print_color $YELLOW "pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123"
+
     
     show_test_credentials
 }

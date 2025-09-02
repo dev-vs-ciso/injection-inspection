@@ -97,6 +97,8 @@ echo ============================================================
 echo Banking Application: http://localhost:5000
 echo pgAdmin (Database Management): http://localhost:8080
 echo pgAdmin Login: admin@example.com / admin123
+echo pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123
+
 echo.
 goto show_test_credentials
 
