@@ -733,12 +733,25 @@ def main():
     with app.app_context():
         # Create database tables if they don't exist
         try:
+            print("🗑️ Dropping all existing tables...")
+            db.drop_all()
+            print("✅ All tables dropped")
+            
+            print("🏗️ Creating fresh database tables...")
             db.create_all()
-            print("✅ Database tables verified/created")
+            print("✅ Database tables created")
         except Exception as e:
-            print(f"❌ Error creating database tables: {e}")
+            print(f"❌ Error recreating database tables: {e}")
             return
-        
+        # try:
+        #     db.create_all()
+        #     print("✅ Database tables verified/created")
+        # except Exception as e:
+        #     print(f"❌ Error creating database tables: {e}")
+        #     return
+
+
+
         # Populate database
         user_info = populate_database()
         

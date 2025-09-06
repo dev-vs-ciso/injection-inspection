@@ -50,7 +50,7 @@
                             <strong>Customer:</strong>
                         </div>
                         <div class="col-sm-9">
-                            {{ feedback.get_display_name() }}
+                            {{ feedback.get_display_name()[:2] }}********
                             {% if feedback.is_anonymous %}
                             <span class="badge bg-secondary ms-2">Anonymous</span>
                             {% endif %}

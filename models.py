@@ -26,7 +26,7 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     account_number = db.Column(db.String(20), unique=True, nullable=False)
     balance = db.Column(db.Numeric(12, 2), default=Decimal('1000.00'))
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc)) 
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc)) 
     is_active = db.Column(db.Boolean, default=True)
     
     # Relationship to transactions
@@ -75,7 +75,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     company = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    date = db.Column(db.DateTime, nullable=False, index=True)
+    date = db.Column(db.DateTime(timezone=True), nullable=False, index=True)
     reference_number = db.Column(db.String(50), unique=True, nullable=False)
     balance_after = db.Column(db.Numeric(12, 2), nullable=False)
     category = db.Column(db.String(30))  # Optional categorization
@@ -127,7 +127,7 @@ class Feedback(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     score = db.Column(db.Integer, nullable=False)  # 1-5 star rating
     message = db.Column(db.Text, nullable=False)  # Up to 500 characters
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), index=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc), index=True)
     is_anonymous = db.Column(db.Boolean, default=False)  # Option to hide name
     
     @classmethod
