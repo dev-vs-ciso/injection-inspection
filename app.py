@@ -15,6 +15,7 @@ from application.home import index, dashboard
 from application.user import login, logout, profile
 from application.api import api_stats
 from application.transaction import transaction_detail, search, export_transactions, download_export_file
+from application.feedback import feedback_list, feedback_detail, submit_feedback, feedback_by_user
 # Load environment variables
 load_dotenv()
 
@@ -91,6 +92,12 @@ def create_app(config_class=Config):
     app.add_url_rule('/search', 'search', search, methods=['GET', 'POST'])
     app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
     app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])
+
+    # Create feedback routes
+    app.add_url_rule('/feedback', 'feedback_list', feedback_list)
+    app.add_url_rule('/feedback/<int:feedback_id>', 'feedback_detail', feedback_detail)
+    app.add_url_rule('/feedback/submit', 'submit_feedback', submit_feedback, methods=['GET', 'POST'])
+    app.add_url_rule('/feedback/user/<int:user_id>', 'feedback_by_user', feedback_by_user)
 
     # Create api routes
     app.add_url_rule('/api/stats', 'api_stats', api_stats)

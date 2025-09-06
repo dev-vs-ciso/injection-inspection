@@ -5,6 +5,7 @@ Provides authentication and security decorators
 from functools import wraps
 from flask import redirect, url_for, flash, request, session
 from flask_login import current_user
+from datetime import datetime, timezone, timedelta
 
 
 def login_required(f):
@@ -96,8 +97,7 @@ def rate_limit_login(max_attempts=5, window_minutes=15):
             attempts = session.get(attempts_key, [])
             
             # Clean old attempts (older than window_minutes)
-            from datetime import datetime, timedelta
-            cutoff_time = datetime.utcnow() - timedelta(minutes=window_minutes)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
             attempts = [attempt for attempt in attempts if datetime.fromisoformat(attempt) > cutoff_time]
             
             # Check if too many attempts

@@ -4,7 +4,7 @@ Handles all user interactions and page rendering
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from models import db, User, Transaction
 from decorators import login_required, anonymous_required, active_user_required
 
@@ -78,7 +78,7 @@ def profile():
         'transaction_count': transaction_count,
         'first_transaction_date': first_transaction.date if first_transaction else None,
         'last_transaction_date': last_transaction.date if last_transaction else None,
-        'account_age': (datetime.utcnow() - current_user.created_at).days
+        'account_age': (datetime.now(timezone.utc) - current_user.created_at).days  # datetime.utcnow() is replaced by datetime.now(timezone.utc)
     }
     
     return render_template('profile.html', profile_stats=profile_stats)

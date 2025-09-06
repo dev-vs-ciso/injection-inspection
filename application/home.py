@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import or_, and_
-from models import db, User, Transaction, get_database_stats
+from models import db, User, Transaction, get_database_stats, Feedback
 from decorators import login_required, anonymous_required, active_user_required
 
 
@@ -55,18 +55,22 @@ def dashboard():
                             .scalar() or 0
     
     # Get recent activity (last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     recent_activity_count = Transaction.query.filter_by(user_id=current_user.id)\
                                            .filter(Transaction.date >= thirty_days_ago)\
                                            .count()
     
+    # Get score distribution for statistics
+    average_score = Feedback.get_average_score()
+    
     summary = {
         'total_credits': total_credits,
         'total_debits': total_debits,
-        'recent_activity_count': recent_activity_count
+        'recent_activity_count': recent_activity_count,
+        'average_score': average_score
     }
     
     return render_template('dashboard.html', 
-                         transactions=transactions, 
-                         summary=summary)
+                        transactions=transactions, 
+                        summary=summary)
 

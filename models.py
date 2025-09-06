@@ -7,6 +7,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from decimal import Decimal
+from datetime import datetime, timezone
 
 # Initialize SQLAlchemy instance
 db = SQLAlchemy()
@@ -25,12 +26,15 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     account_number = db.Column(db.String(20), unique=True, nullable=False)
     balance = db.Column(db.Numeric(12, 2), default=Decimal('1000.00'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc)) 
     is_active = db.Column(db.Boolean, default=True)
     
     # Relationship to transactions
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
-    
+
+    # Relationship to feedback    
+    feedback = db.relationship('Feedback', backref='user', lazy=True, cascade='all, delete-orphan')
+
     def set_password(self, password):
         """Hash and store password securely"""
         self.password_hash = generate_password_hash(password)
@@ -38,6 +42,10 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         """Verify password against stored hash"""
         return check_password_hash(self.password_hash, password)
+    
+    def get_full_name(self):
+        """Return user's full name"""
+        return f"{self.first_name} {self.last_name}"
     
     def get_full_name(self):
         """Return user's full name"""
@@ -86,7 +94,7 @@ class Transaction(db.Model):
     @classmethod
     def get_monthly_volume(cls):
         """Get current month's transaction volume"""
-        current_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         result = db.session.query(db.func.sum(cls.amount))\
                           .filter(cls.date >= current_month)\
                           .scalar()
@@ -106,6 +114,59 @@ class Transaction(db.Model):
     
     def __repr__(self):
         return f'<Transaction {self.reference_number}: {self.transaction_type} ${self.amount}>'
+
+
+class Feedback(db.Model):
+    """
+    Feedback model for storing customer feedback
+    Each feedback entry belongs to a user (but can be viewed by anyone)
+    """
+    __tablename__ = 'feedback'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    score = db.Column(db.Integer, nullable=False)  # 1-5 star rating
+    message = db.Column(db.Text, nullable=False)  # Up to 500 characters
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), index=True)
+    is_anonymous = db.Column(db.Boolean, default=False)  # Option to hide name
+    
+    @classmethod
+    def get_recent_feedback(cls, limit=3):
+        """Get most recent feedback entries"""
+        return cls.query.order_by(cls.created_at.desc()).limit(limit).all()
+    
+    @classmethod
+    def get_score_distribution(cls):
+        """Get distribution of feedback scores"""
+        distribution = {}
+        for score in range(1, 6):
+            count = cls.query.filter_by(score=score).count()
+            distribution[score] = count
+        return distribution
+    
+    @classmethod
+    def get_all_feedback(cls):
+        """Get all feedback entries ordered by most recent"""
+        return cls.query.order_by(cls.created_at.desc()).all()
+    
+    @classmethod
+    def get_average_score(cls):
+        """Get average feedback score"""
+        result = db.session.query(db.func.avg(cls.score)).scalar()
+        return round(float(result), 1) if result else 0.0
+    
+    def get_star_display(self):
+        """Get star display for the score"""
+        return '★' * self.score + '☆' * (5 - self.score)
+    
+    def get_display_name(self):
+        """Get display name (anonymous or real name)"""
+        if self.is_anonymous:
+            return "Anonymous Customer"
+        return self.user.get_full_name() if self.user else "Unknown User"
+    
+    def __repr__(self):
+        return f'<Feedback {self.id}: {self.score} stars by user {self.user_id}>'
 
 
 def init_database(app):
@@ -132,7 +193,9 @@ def get_database_stats():
         'total_users': User.query.count(),
         'total_transactions': Transaction.get_transaction_count(),
         'total_volume': Transaction.get_total_volume(),
-        'monthly_volume': Transaction.get_monthly_volume()
+        'monthly_volume': Transaction.get_monthly_volume(),
+        'total_feedback': Feedback.query.count(),
+        'average_score': Feedback.get_average_score()
     }
     
     return stats
