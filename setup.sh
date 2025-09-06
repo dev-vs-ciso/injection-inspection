@@ -131,7 +131,8 @@ stop_services() {
 # Function to clean up (remove containers and volumes)
 cleanup() {
     print_header "🧹 CLEANING UP"
-    print_color $YELLOW "⚠️  This will remove all containers and data volumes!"
+    print_color $YELLOW "⚠️  This will remove all containers, data volumes, and banking-app images!"
+    print_color $YELLOW "⚠️  The application will need to rebuild images on next startup."
     read -p "Are you sure? (y/N): " -n 1 -r
     echo
     
@@ -140,12 +141,22 @@ cleanup() {
         if [ -f "docker-compose.postgres.yml" ]; then
             $DOCKER_COMPOSE -f docker-compose.postgres.yml down -v
         fi
+
+        # Remove banking-app related images
+        print_color $BLUE "Removing banking-app images..."
         
+        # Remove images that contain "banking" in the name (adjust pattern as needed)
+        docker images --format "{{.Repository}}:{{.Tag}}" | grep -i banking-app | xargs -r docker rmi -f 2>/dev/null || true
+        
+        # Alternative: Remove specific image names if you know them
+        # docker rmi -f banking-app:latest 2>/dev/null || true
+        # docker rmi -f banking_banking-app:latest 2>/dev/null || true
+
         # Remove any orphaned containers
         docker container prune -f
         docker volume prune -f
         
-        print_color $GREEN "✅ Cleanup complete"
+        print_color $GREEN "✅ Cleanup complete - images will be rebuilt on next startup"
     else
         print_color $BLUE "Cleanup cancelled"
     fi

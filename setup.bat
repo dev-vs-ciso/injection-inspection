@@ -167,18 +167,27 @@ echo.
 echo ============================================================
 echo 🧹 CLEANING UP
 echo ============================================================
-echo ⚠️ This will remove all containers and data volumes!
+echo ⚠️ This will remove all containers, data volumes, and banking-app images!
+echo ⚠️ The application will need to rebuild images on next startup.
 set /p confirm="Are you sure? (y/N): "
 
 if /i "%confirm%"=="y" (
+    echo 🛑 Stopping and removing containers and volumes...
     if exist docker-compose.postgres.yml (
         !DOCKER_COMPOSE! -f docker-compose.postgres.yml down -v
+    )
+    
+    echo 🗑️ Removing banking-app images...
+    :: Remove images that contain "banking" in the name
+    for /f "tokens=*" %%i in ('docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i banking-app 2^>nul') do (
+        echo Removing image: %%i
+        docker rmi -f "%%i" >nul 2>&1
     )
     
     docker container prune -f
     docker volume prune -f
     
-    echo ✅ Cleanup complete
+    echo ✅ Cleanup complete - images will be rebuilt on next startup
 ) else (
     echo Cleanup cancelled
 )
