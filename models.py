@@ -35,10 +35,55 @@ class User(UserMixin, db.Model):
     # Relationship to feedback    
     feedback = db.relationship('Feedback', backref='user', lazy=True, cascade='all, delete-orphan')
 
+
+    def vulnerable_authenticate(cls, email, password):
+        """
+        VULNERABLE: Authentication method with SQL injection vulnerabilities
+        This method demonstrates dangerous raw SQL usage for training purposes
+        DO NOT USE IN PRODUCTION
+        """
+        try:
+            # VULNERABILITY: Direct string interpolation allows SQL injection
+            vulnerable_query = f"""
+                SELECT id, email, password_hash, first_name, last_name, 
+                       account_number, balance, created_at, is_active 
+                FROM users 
+                WHERE email = '{email}' 
+                AND is_active = true
+                LIMIT 1
+            """
+            
+            from sqlalchemy import text
+            result = db.session.execute(text(vulnerable_query)).fetchone()
+            
+            if result:
+                # Create a User object from the raw result
+                user = cls()
+                user.id = result[0]
+                user.email = result[1] 
+                user.password_hash = result[2]
+                user.first_name = result[3]
+                user.last_name = result[4]
+                user.account_number = result[5]
+                user.balance = result[6]
+                user.created_at = result[7]
+                user.is_active = result[8]
+                
+                # VULNERABILITY: Skip password validation entirely for demonstration
+                # In a real attack, this could be exploited via SQL injection
+                # The password parameter is ignored here
+                return user
+            
+            return None
+            
+        except Exception as e:
+            # VULNERABILITY: Expose SQL errors to help with training
+            raise Exception(f"Database error (SQL injection point): {str(e)}")
+
     def set_password(self, password):
         """Hash and store password securely"""
         self.password_hash = generate_password_hash(password)
-    
+
     def check_password(self, password):
         """Verify password against stored hash"""
         return check_password_hash(self.password_hash, password)

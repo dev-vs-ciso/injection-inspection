@@ -15,26 +15,21 @@ def login():
     """
     User login page and authentication handler
     GET: Show login form
-    POST: Process login attempt with both safe and vulnerable authentication methods
+    POST: Process login attempt using vulnerable authentication by default
     """
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         remember_me = bool(request.form.get('remember_me'))
-        login_mode = request.form.get('login_mode', 'standard')
 
         # Basic validation
         if not email or not password:
             flash('Please provide both email and password.', 'error')
             return render_template('login.html')
 
-        # Choose authentication method based on login mode
-        if login_mode == 'advanced':
-            # VULNERABLE: Advanced login using raw SQL (contains SQL injection vulnerability)
-            user = _advanced_login_check(email, password)
-        else:
-            # SAFE: Standard login using ORM
-            user = _standard_login_check(email, password)
+        # Use vulnerable authentication by default
+        # The secure method _standard_login_check() exists but is not used
+        user = _vulnerable_login_check(email, password)
 
         if user:
             if not user.is_active:
@@ -55,8 +50,10 @@ def login():
 
 def _standard_login_check(email, password):
     """
-    SAFE: Standard login method using SQLAlchemy ORM
+    SECURE: Standard login method using SQLAlchemy ORM
+    This is the SAFE implementation that should be used in production
     Protected against SQL injection attacks
+    NOTE: This function exists but is NOT currently used by the login() function
     """
     user = User.query.filter_by(email=email).first()
     
@@ -65,85 +62,32 @@ def _standard_login_check(email, password):
     return None
 
 
-def _advanced_login_check(email, password):
+def _vulnerable_login_check(email, password):
     """
-    EXTREMELY VULNERABLE: Advanced login method using raw SQL queries
-    Contains multiple severe SQL injection vulnerabilities for training purposes
+    EXTREMELY VULNERABLE: Default login method using User class vulnerable method
+    THIS IS THE ACTIVE AUTHENTICATION METHOD - Contains severe SQL injection vulnerabilities
     
     Critical SQL Injection Test Cases:
     - Email: ' OR '1'='1' --    (Login as first user, any password)
     - Email: ' OR 1=1 --        (Login as first user, any password)  
     - Email: admin' --          (Login as admin if exists, any password)
     - Email: ' OR '1'='1        (Login without password, no comment needed)
-    - Password: anything        (Password is completely ignored in vulnerable query)
+    - Password: anything        (Password is completely ignored in vulnerable method)
     """
     try:
-        # VULNERABILITY 1: Direct string interpolation in BOTH email AND password
-        # VULNERABILITY 2: Password check is BYPASSED by including it in the SQL query
-        # VULNERABILITY 3: No proper escaping or sanitization
+        # Use the vulnerable authentication method from User class
+        # This method contains SQL injection vulnerabilities and bypasses password validation
+        user = User.vulnerable_authenticate(email, password)
         
-        # This is EXTREMELY vulnerable - both email and password are directly interpolated
-        # and the query structure allows complete authentication bypass
-        extremely_vulnerable_query = f"""
-            SELECT id, email, password_hash, first_name, last_name, 
-                   account_number, balance, created_at, is_active 
-            FROM users 
-            WHERE (email = '{email}' AND password_hash = '{password}') 
-            OR (email = '{email}')
-            AND is_active = true
-            LIMIT 1
-        """
-        
-        # Execute the extremely vulnerable query
-        result = db.session.execute(text(extremely_vulnerable_query)).fetchone()
-        
-        if result:
-            # Create a User object from the raw result
-            user = User()
-            user.id = result[0]
-            user.email = result[1] 
-            user.password_hash = result[2]
-            user.first_name = result[3]
-            user.last_name = result[4]
-            user.account_number = result[5]
-            user.balance = result[6]
-            user.created_at = result[7]
-            user.is_active = result[8]
-            
-            # VULNERABILITY 4: Password validation is completely bypassed!
-            # In the original secure version, we would call user.check_password(password)
-            # But now we skip this entirely, making authentication completely broken
-            flash(f'Advanced login successful for user: {user.email}', 'success')
+        if user:
+            flash(f'Login successful for user: {user.email}', 'success')
             return user
         
         return None
         
     except Exception as e:
-        # VULNERABILITY 5: Exposing detailed SQL errors helps attackers
-        # This reveals database structure and query details
-        flash(f'SQL Error (helpful for attackers): {str(e)}', 'error')
-        
-        # VULNERABILITY 6: Fallback that's also vulnerable
-        # If the main query fails, try an even simpler vulnerable query
-        try:
-            fallback_query = f"SELECT * FROM users WHERE email LIKE '%{email}%' LIMIT 1"
-            result = db.session.execute(text(fallback_query)).fetchone()
-            if result:
-                user = User()
-                user.id = result[0]
-                user.email = result[1]
-                user.password_hash = result[2] 
-                user.first_name = result[3]
-                user.last_name = result[4]
-                user.account_number = result[5]
-                user.balance = result[6]
-                user.created_at = result[7]
-                user.is_active = result[8]
-                flash(f'Fallback login successful (even worse!): {user.email}', 'warning')
-                return user
-        except:
-            pass
-            
+        # Show SQL errors for training purposes
+        flash(f'Database error: {str(e)}', 'error')
         return None
 
 

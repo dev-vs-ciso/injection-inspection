@@ -1,20 +1,21 @@
-# EXTREME SQL Injection in Login Form - Training Guide
+# CRITICAL: Default Login SQL Injection Vulnerability
 
-## 🚨 CRITICAL VULNERABILITY ALERT
-The login form has been enhanced with an **Advanced Login** mode that contains **EXTREMELY SEVERE** SQL injection vulnerabilities where **PASSWORD VALIDATION IS COMPLETELY BYPASSED**.
+## 🚨 VULNERABILITY ACTIVE BY DEFAULT
+This banking application has a **CRITICAL SQL injection vulnerability** in the login system that is **ACTIVE BY DEFAULT**. The login form appears normal but contains severe authentication bypass vulnerabilities.
 
-## Vulnerability Location
+## Vulnerability Details
 - **File**: `application/user.py` 
-- **Function**: `_advanced_login_check()`
-- **Vulnerable Parameters**: Email field (primary) and Password field (also injected but ignored)
+- **Function**: `_vulnerable_login_check()` (used by default)
+- **Safe Alternative**: `_standard_login_check()` (exists but unused)
 - **Severity**: CRITICAL - Complete authentication bypass
+- **Default State**: VULNERABLE (no UI indication)
 
 ## How to Test
 
-### 1. Enable Advanced Login Mode
+### 1. Access the Login Page
 1. Go to the login page: `http://localhost:5000/login`
-2. Click on the **"Advanced Login"** tab (red button with warning)
-3. Notice the severe warning messages
+2. **Notice**: The form appears completely normal - no warning indicators
+3. **Reality**: The backend uses vulnerable SQL queries by default
 
 ### 2. Authentication Bypass Tests (NO PASSWORD REQUIRED!)
 

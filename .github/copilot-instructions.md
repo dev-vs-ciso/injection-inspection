@@ -25,10 +25,10 @@ elif DATABASE_TYPE == 'azure-sql-edge': # Edge computing scenarios
 ```
 
 ### Security Training Architecture
-- **Safe methods**: SQLAlchemy ORM queries (default protection)
-- **Vulnerable methods**: Raw SQL in `_advanced_search()` and `_advanced_login_check()` for injection training
+- **Vulnerable by default**: Login uses raw SQL with complete authentication bypass
+- **Safe methods available**: SQLAlchemy ORM queries exist but are not used (`_standard_login_check()`)
+- **Realistic vulnerability**: No UI toggles - appears as normal banking app with hidden SQL injection
 - **Dual search modes**: Basic (safe) vs Advanced (vulnerable) in `application/transaction.py`
-- **Dual login modes**: Standard (ORM) vs Advanced (raw SQL) in `application/user.py`
 
 ## Key Workflows & Commands
 
@@ -62,7 +62,7 @@ docker exec banking-app python populate_db.py
 ### Injection Vulnerability Implementation
 Located in `application/transaction.py` and `application/user.py`:
 ```python
-# Safe ORM method (default)
+# Safe ORM method (default in search)
 def _basic_search():
     query = Transaction.query.filter_by(user_id=current_user.id)
     query = query.filter(Transaction.company.ilike(f'%{company}%'))
@@ -72,9 +72,10 @@ def _advanced_search():
     base_query = f"SELECT * FROM transactions WHERE user_id = {current_user.id}"
     where_conditions.append(f"t.company LIKE '%{company}%'")  # SQL injection point
 
-# Login SQL injection vulnerability
-def _advanced_login_check(email, password):
-    vulnerable_query = f"SELECT * FROM users WHERE email = '{email}'"  # Direct injection point
+# ACTIVE login vulnerability (no UI toggle - always vulnerable)
+def _vulnerable_login_check(email, password):
+    vulnerable_query = f"SELECT * FROM users WHERE (email = '{email}' AND password_hash = '{password}') OR (email = '{email}')"
+    # Password validation completely bypassed!
 ```
 
 ### Security Decorator Patterns
@@ -132,7 +133,7 @@ Debug mode auto-enabled for local development, disabled for containerized enviro
 ### Security Testing Workflow
 1. Use `populate_db.py` credentials for authenticated testing
 2. Test both basic (secure) and advanced (vulnerable) search modes
-3. Test both standard (ORM) and advanced (raw SQL) login modes
+3. Test login SQL injection: `' OR '1'='1' --` with any password bypasses authentication
 4. `knowledge/Command_injection.md` and `knowledge/Login_sql_injection.md` contain specific test cases
 5. Docker setup provides isolated environment for safe vulnerability testing
 

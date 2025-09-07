@@ -13,26 +13,7 @@
                 </div>
                 
                 <div class="card-body p-4">
-                    <!-- Login Mode Selection -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-center">
-                            <div class="btn-group" role="group" aria-label="Login mode selection">
-                                <input type="radio" class="btn-check" name="login_mode" id="standard_mode" value="standard" checked autocomplete="off">
-                                <label class="btn btn-outline-primary" for="standard_mode">Standard Login</label>
-                                
-                                <input type="radio" class="btn-check" name="login_mode" id="advanced_mode" value="advanced" autocomplete="off">
-                                <label class="btn btn-outline-warning" for="advanced_mode">Advanced Login</label>
-                            </div>
-                        </div>
-                        <div class="text-center mt-2">
-                            <small class="text-muted" id="mode_description">Secure ORM-based authentication</small>
-                        </div>
-                    </div>
-
                     <form method="POST" action="{{ url_for('login') }}">
-                        <!-- Hidden field to track selected login mode -->
-                        <input type="hidden" name="login_mode" id="selected_login_mode" value="standard">
-                        
                         <div class="mb-4">
                             <label for="email" class="form-label fw-bold">Email Address</label>
                             <div class="input-group input-group-lg">
@@ -49,10 +30,10 @@
                                     autocomplete="email"
                                 >
                             </div>
-                            <div class="mt-2" id="email_hint" style="display: none;">
-                                <small class="text-danger">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>
-                                    <strong>EXTREME VULNERABILITY:</strong> Password validation completely bypassed! SQL injection in email field.
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Standard email login for secure access
                                 </small>
                             </div>
                         </div>
@@ -72,12 +53,6 @@
                                     required
                                     autocomplete="current-password"
                                 >
-                            </div>
-                            <div class="mt-2" id="password_hint" style="display: none;">
-                                <small class="text-danger">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>
-                                    <strong>PASSWORD IGNORED:</strong> Type anything - authentication is completely broken!
-                                </small>
                             </div>
                         </div>
                         
@@ -116,14 +91,14 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <!-- Standard Security Tips -->
-            <div class="alert alert-info" role="alert" id="standard_tips">
+            <!-- Security Tips -->
+            <div class="alert alert-info" role="alert">
                 <div class="row align-items-center">
                     <div class="col-auto">
                         <i class="bi bi-lightbulb fs-4"></i>
                     </div>
                     <div class="col">
-                        <h6 class="alert-heading mb-1">Security Tips</h6>
+                        <h6 class="alert-heading mb-1">Banking Security Tips</h6>
                         <ul class="mb-0 small">
                             <li>Always verify the URL before entering your credentials</li>
                             <li>Never share your login information with others</li>
@@ -134,71 +109,17 @@
                 </div>
             </div>
             
-            <!-- SQL Injection Training Tips -->
-            <div class="alert alert-danger" role="alert" id="injection_tips" style="display: none;">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-                    </div>
-                    <div class="col">
-                        <h6 class="alert-heading mb-1">🚨 EXTREMELY VULNERABLE Login Mode</h6>
-                        <p class="mb-2 small"><strong>Password validation is COMPLETELY BYPASSED!</strong> Try these examples:</p>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="small fw-bold">Authentication Bypass (Any Password!):</h6>
-                                <ul class="mb-2 small">
-                                    <li><code>' OR '1'='1' --</code></li>
-                                    <li><code>' OR 1=1 --</code></li>
-                                    <li><code>' OR 'x'='x' --</code></li>
-                                    <li><code>admin' --</code></li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="small fw-bold">No Password Required:</h6>
-                                <ul class="mb-2 small">
-                                    <li><code>' OR '1'='1</code></li>
-                                    <li><code>anything' OR '1'='1</code></li>
-                                    <li><code>test' OR 'a'='a</code></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="alert alert-warning alert-sm mt-2 mb-0">
-                            <small><strong>Password Field:</strong> Type anything - it will be ignored! Authentication is completely broken.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Hidden Training Note (only visible to security professionals) -->
+            <!-- 
+            SQL INJECTION VULNERABILITY ACTIVE:
+            - Email field: Direct SQL injection possible
+            - Try: ' OR '1'='1' -- with any password
+            - Authentication completely bypassed
+            - Password validation disabled
+            -->
         </div>
     </div>
 </div>
-
-<script>
-// Show/hide tips based on login mode
-document.addEventListener('DOMContentLoaded', function() {
-    const standardMode = document.getElementById('standard_mode');
-    const advancedMode = document.getElementById('advanced_mode');
-    const standardTips = document.getElementById('standard_tips');
-    const injectionTips = document.getElementById('injection_tips');
-    
-    function toggleTips(mode) {
-        if (mode === 'advanced') {
-            standardTips.style.display = 'none';
-            injectionTips.style.display = 'block';
-        } else {
-            standardTips.style.display = 'block';
-            injectionTips.style.display = 'none';
-        }
-    }
-    
-    standardMode.addEventListener('change', function() {
-        if (this.checked) toggleTips('standard');
-    });
-    
-    advancedMode.addEventListener('change', function() {
-        if (this.checked) toggleTips('advanced');
-    });
-});
-</script>
 {% endblock %}
 
 {% block scripts %}
@@ -209,60 +130,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (emailField) {
         emailField.focus();
     }
-    
-    // Initialize login mode handling
-    initializeLoginModeToggle();
 });
 
-// Handle login mode switching
-function initializeLoginModeToggle() {
-    const standardMode = document.getElementById('standard_mode');
-    const advancedMode = document.getElementById('advanced_mode');
-    const hiddenModeField = document.getElementById('selected_login_mode');
-    const modeDescription = document.getElementById('mode_description');
-    const emailHint = document.getElementById('email_hint');
-    const emailField = document.getElementById('email');
-    
-    function updateLoginMode(mode) {
-        hiddenModeField.value = mode;
-        
-        if (mode === 'advanced') {
-            modeDescription.textContent = 'EXTREMELY VULNERABLE - Password validation bypassed!';
-            modeDescription.className = 'text-danger fw-bold';
-            emailHint.style.display = 'block';
-            document.getElementById('password_hint').style.display = 'block';
-            emailField.placeholder = 'Try: \' OR \'1\'=\'1\' --';
-            document.getElementById('password').placeholder = 'Type anything (ignored!)';
-            emailField.setAttribute('type', 'text'); // Allow SQL injection characters
-        } else {
-            modeDescription.textContent = 'Secure ORM-based authentication';
-            modeDescription.className = 'text-muted';
-            emailHint.style.display = 'none';
-            document.getElementById('password_hint').style.display = 'none';
-            emailField.placeholder = 'Enter your email';
-            document.getElementById('password').placeholder = 'Enter your password';
-            emailField.setAttribute('type', 'email');
-        }
-    }
-    
-    standardMode.addEventListener('change', function() {
-        if (this.checked) {
-            updateLoginMode('standard');
-        }
-    });
-    
-    advancedMode.addEventListener('change', function() {
-        if (this.checked) {
-            updateLoginMode('advanced');
-        }
-    });
-}
-
-// Form validation enhancement
+// Basic form validation
 document.querySelector('form').addEventListener('submit', function(e) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const loginMode = document.getElementById('selected_login_mode').value;
     
     if (!email || !password) {
         e.preventDefault();
@@ -270,23 +143,12 @@ document.querySelector('form').addEventListener('submit', function(e) {
         return false;
     }
     
-    // Only validate email format in standard mode
-    if (loginMode === 'standard') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            e.preventDefault();
-            alert('Please enter a valid email address.');
-            return false;
-        }
-    }
-    
-    // Warning for advanced mode
-    if (loginMode === 'advanced') {
-        const confirmed = confirm('🚨 WARNING: Advanced Login has EXTREME vulnerabilities!\n\n• Password validation is completely bypassed\n• SQL injection allows authentication bypass\n• Any user can be compromised\n\nThis is for TRAINING ONLY. Continue?');
-        if (!confirmed) {
-            e.preventDefault();
-            return false;
-        }
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address.');
+        return false;
     }
 });
 </script>
