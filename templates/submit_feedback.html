@@ -172,6 +172,7 @@
 {% endblock %}
 
 {% block scripts %}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.star');
@@ -188,7 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
             scoreInput.value = rating;
             updateStars(rating);
             updateRatingDescription(rating);
-            updatePreview();
             validateForm();
         });
         
@@ -217,13 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
             charCount.classList.remove('text-warning', 'text-danger');
         }
         
-        updatePreview();
         validateForm();
     });
     
     // Anonymous checkbox functionality
     anonymousCheckbox.addEventListener('change', function() {
-        updatePreview();
     });
     
     function updateStars(rating) {

@@ -53,7 +53,6 @@ echo.
 set /p choice="Enter your choice (1-8): "
 
 if "%choice%"=="1" goto start_postgres
-if "%choice%"=="2" goto start_sqlserver
 if "%choice%"=="3" goto show_status
 if "%choice%"=="4" goto show_logs
 if "%choice%"=="5" goto stop_services
@@ -86,6 +85,10 @@ timeout /t 15 /nobreak >nul
 :: Show service status
 !DOCKER_COMPOSE! -f docker-compose.postgres.yml ps
 
+echo 📊 Initialize database and populate with sample data
+timeout /t 5 /nobreak >nul
+docker exec banking-app flask db upgrade
+
 echo 📊 Populating database with sample data...
 timeout /t 5 /nobreak >nul
 docker exec banking-app python populate_db.py
@@ -102,67 +105,6 @@ echo pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123
 echo.
 goto show_test_credentials
 
-:start_sqlserver
-echo.
-echo ============================================================
-echo 🏢 STARTING SQL SERVER STACK  
-echo ============================================================
-
-:: Copy SQL Server environment file
-if exist .env.sqlserver (
-    copy .env.sqlserver .env >nul
-    echo ✅ Using SQL Server environment configuration
-) else (
-    echo ⚠️ .env.sqlserver not found, using default values
-)
-
-echo 🚀 Starting SQL Server and Banking Application...
-!DOCKER_COMPOSE! -f docker-compose.sqlserver.yml up -d
-
-echo ⏳ Waiting for SQL Server to start (this may take 30-60 seconds)...
-timeout /t 30 /nobreak >nul
-
-:: Show service status
-!DOCKER_COMPOSE! -f docker-compose.sqlserver.yml ps
-
-echo 🔍 Checking SQL Server health...
-for /l %%i in (1,1,10) do (
-    docker exec banking-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "SecurePassword123!" -Q "SELECT 1" >nul 2>&1
-    if not errorlevel 1 (
-        echo ✅ SQL Server is ready
-        goto populate_sqlserver
-    )
-    echo ⏳ Waiting for SQL Server... (%%i/10)
-    timeout /t 5 /nobreak >nul
-)
-
-:populate_sqlserver
-echo 📊 Populating database with sample data...
-timeout /t 5 /nobreak >nul
-docker exec banking-app python populate_db.py
-
-echo.
-echo ============================================================
-echo 🎉 SQL SERVER SETUP COMPLETE
-echo ============================================================
-echo Banking Application: http://localhost:5000
-echo Adminer (Database Management): http://localhost:8080
-echo Adminer: Select 'MS SQL Server', Server: sqlserver, User: sa, Password: SecurePassword123!
-echo.
-goto show_test_credentials
-
-:show_test_credentials
-echo ============================================================
-echo 🔑 TEST LOGIN CREDENTIALS
-echo ============================================================
-echo The populate_db.py script has created sample users.
-echo Check the console output above for specific login credentials.
-echo Common test passwords: password123, training456, demo789
-echo Visit: http://localhost:5000 to access the application
-echo.
-pause
-goto menu
-
 :show_status
 echo.
 echo ============================================================
@@ -175,12 +117,6 @@ if exist .env (
     if not errorlevel 1 (
         echo Active Configuration: PostgreSQL
         !DOCKER_COMPOSE! -f docker-compose.postgres.yml ps
-    ) else (
-        findstr "sqlserver" .env >nul 2>&1
-        if not errorlevel 1 (
-            echo Active Configuration: SQL Server
-            !DOCKER_COMPOSE! -f docker-compose.sqlserver.yml ps
-        )
     )
 ) else (
     echo No active configuration found
@@ -195,15 +131,13 @@ goto menu
 
 :show_logs
 echo.
-set /p service="Which service logs? (banking-app, banking-postgres, banking-sqlserver, or Enter for all): "
+set /p service="Which service logs? (banking-app, banking-postgres, or Enter for all): "
 if "%service%"=="" (
     echo Showing logs for all services...
     if exist .env (
         findstr "postgresql" .env >nul 2>&1
         if not errorlevel 1 (
             !DOCKER_COMPOSE! -f docker-compose.postgres.yml logs
-        ) else (
-            !DOCKER_COMPOSE! -f docker-compose.sqlserver.yml logs
         )
     )
 ) else (
@@ -224,11 +158,6 @@ if exist docker-compose.postgres.yml (
     !DOCKER_COMPOSE! -f docker-compose.postgres.yml down
 )
 
-if exist docker-compose.sqlserver.yml (
-    echo Stopping SQL Server stack...
-    !DOCKER_COMPOSE! -f docker-compose.sqlserver.yml down
-)
-
 echo ✅ All services stopped
 pause
 goto menu
@@ -238,22 +167,27 @@ echo.
 echo ============================================================
 echo 🧹 CLEANING UP
 echo ============================================================
-echo ⚠️ This will remove all containers and data volumes!
+echo ⚠️ This will remove all containers, data volumes, and banking-app images!
+echo ⚠️ The application will need to rebuild images on next startup.
 set /p confirm="Are you sure? (y/N): "
 
 if /i "%confirm%"=="y" (
+    echo 🛑 Stopping and removing containers and volumes...
     if exist docker-compose.postgres.yml (
         !DOCKER_COMPOSE! -f docker-compose.postgres.yml down -v
     )
     
-    if exist docker-compose.sqlserver.yml (
-        !DOCKER_COMPOSE! -f docker-compose.sqlserver.yml down -v
+    echo 🗑️ Removing banking-app images...
+    :: Remove images that contain "banking" in the name
+    for /f "tokens=*" %%i in ('docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i banking-app 2^>nul') do (
+        echo Removing image: %%i
+        docker rmi -f "%%i" >nul 2>&1
     )
     
     docker container prune -f
     docker volume prune -f
     
-    echo ✅ Cleanup complete
+    echo ✅ Cleanup complete - images will be rebuilt on next startup
 ) else (
     echo Cleanup cancelled
 )
@@ -279,7 +213,6 @@ echo    - Good for enterprise environment simulation
 echo.
 echo 📁 Important Files:
 echo    - .env.postgres: PostgreSQL configuration
-echo    - .env.sqlserver: SQL Server configuration
 echo    - docker/: Database initialization scripts
 echo.
 echo 🔧 Troubleshooting:

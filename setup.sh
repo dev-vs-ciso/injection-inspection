@@ -86,6 +86,11 @@ start_postgres() {
     $DOCKER_COMPOSE -f docker-compose.postgres.yml ps
     
     # Initialize database and populate with sample data
+    print_color $BLUE "📊 Running database migrations..."
+    sleep 5  # Give the app a moment to fully start
+    docker exec banking-app flask db upgrade
+
+    # Initialize database and populate with sample data
     print_color $BLUE "📊 Populating database with sample data..."
     sleep 5  # Give the app a moment to fully start
     docker exec banking-app python populate_db.py
@@ -100,53 +105,6 @@ start_postgres() {
     show_test_credentials
 }
 
-# Function to start SQL Server stack
-start_sqlserver() {
-    print_header "🏢 STARTING SQL SERVER STACK"
-    
-    # Copy the sqlserver environment file
-    if [ -f ".env.sqlserver" ]; then
-        cp .env.sqlserver .env
-        print_color $GREEN "✅ Using SQL Server environment configuration"
-    else
-        print_color $YELLOW "⚠️  .env.sqlserver not found, using default values"
-    fi
-    
-    # Start the services
-    print_color $BLUE "🚀 Starting SQL Server and Banking Application..."
-    $DOCKER_COMPOSE -f docker-compose.sqlserver.yml up -d
-    
-    # Wait for services to be healthy (SQL Server takes longer to start)
-    print_color $BLUE "⏳ Waiting for SQL Server to start (this may take 30-60 seconds)..."
-    sleep 30
-    
-    # Show service status
-    $DOCKER_COMPOSE -f docker-compose.sqlserver.yml ps
-    
-    # Wait a bit more and check if SQL Server is ready
-    print_color $BLUE "🔍 Checking SQL Server health..."
-    for i in {1..10}; do
-        if docker exec banking-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "SecurePassword123!" -Q "SELECT 1" > /dev/null 2>&1; then
-            print_color $GREEN "✅ SQL Server is ready"
-            break
-        else
-            print_color $YELLOW "⏳ Waiting for SQL Server... ($i/10)"
-            sleep 5
-        fi
-    done
-    
-    # Initialize database and populate with sample data
-    print_color $BLUE "📊 Populating database with sample data..."
-    sleep 5  # Give the app a moment to fully start
-    docker exec banking-app python populate_db.py
-    
-    print_header "🎉 SQL SERVER SETUP COMPLETE"
-    print_color $GREEN "Banking Application: http://localhost:5000"
-    print_color $GREEN "Adminer (Database Management): http://localhost:8080"
-    print_color $YELLOW "Adminer: Select 'MS SQL Server', Server: sqlserver, User: sa, Password: SecurePassword123!"
-    
-    show_test_credentials
-}
 
 # Function to show test credentials
 show_test_credentials() {
@@ -167,18 +125,14 @@ stop_services() {
         $DOCKER_COMPOSE -f docker-compose.postgres.yml down
     fi
     
-    if [ -f "docker-compose.sqlserver.yml" ]; then
-        print_color $BLUE "Stopping SQL Server stack..."
-        $DOCKER_COMPOSE -f docker-compose.sqlserver.yml down
-    fi
-    
     print_color $GREEN "✅ All services stopped"
 }
 
 # Function to clean up (remove containers and volumes)
 cleanup() {
     print_header "🧹 CLEANING UP"
-    print_color $YELLOW "⚠️  This will remove all containers and data volumes!"
+    print_color $YELLOW "⚠️  This will remove all containers, data volumes, and banking-app images!"
+    print_color $YELLOW "⚠️  The application will need to rebuild images on next startup."
     read -p "Are you sure? (y/N): " -n 1 -r
     echo
     
@@ -187,16 +141,22 @@ cleanup() {
         if [ -f "docker-compose.postgres.yml" ]; then
             $DOCKER_COMPOSE -f docker-compose.postgres.yml down -v
         fi
+
+        # Remove banking-app related images
+        print_color $BLUE "Removing banking-app images..."
         
-        if [ -f "docker-compose.sqlserver.yml" ]; then
-            $DOCKER_COMPOSE -f docker-compose.sqlserver.yml down -v
-        fi
+        # Remove images that contain "banking" in the name (adjust pattern as needed)
+        docker images --format "{{.Repository}}:{{.Tag}}" | grep -i banking-app | xargs -r docker rmi -f 2>/dev/null || true
         
+        # Alternative: Remove specific image names if you know them
+        # docker rmi -f banking-app:latest 2>/dev/null || true
+        # docker rmi -f banking_banking-app:latest 2>/dev/null || true
+
         # Remove any orphaned containers
         docker container prune -f
         docker volume prune -f
         
-        print_color $GREEN "✅ Cleanup complete"
+        print_color $GREEN "✅ Cleanup complete - images will be rebuilt on next startup"
     else
         print_color $BLUE "Cleanup cancelled"
     fi
@@ -209,8 +169,6 @@ show_logs() {
         print_color $YELLOW "Showing logs for all services..."
         if [ -f ".env" ] && grep -q "postgresql" .env; then
             $DOCKER_COMPOSE -f docker-compose.postgres.yml logs -f
-        elif [ -f ".env" ] && grep -q "sqlserver" .env; then
-            $DOCKER_COMPOSE -f docker-compose.sqlserver.yml logs -f
         else
             print_color $RED "❌ No active configuration found"
         fi
@@ -229,9 +187,6 @@ show_status() {
         if grep -q "postgresql" .env; then
             print_color $BLUE "Active Configuration: PostgreSQL"
             $DOCKER_COMPOSE -f docker-compose.postgres.yml ps
-        elif grep -q "sqlserver" .env; then
-            print_color $BLUE "Active Configuration: SQL Server"
-            $DOCKER_COMPOSE -f docker-compose.sqlserver.yml ps
         fi
     else
         print_color $YELLOW "No active configuration found"
@@ -249,7 +204,6 @@ show_menu() {
     echo "Choose your database option:"
     echo
     echo "1) 🐘 Start with PostgreSQL"
-    echo "2) 🏢 Start with SQL Server"
     echo "3) 📊 Show status"
     echo "4) 📝 Show logs"
     echo "5) 🛑 Stop all services"
@@ -268,15 +222,8 @@ show_help() {
     echo "   - Lighter weight, faster startup"
     echo "   - Good for development and testing"
     echo
-    echo "🏢 SQL Server Option:"
-    echo "   - Uses Microsoft SQL Server 2022 Express"
-    echo "   - Includes Adminer web interface on port 8080"
-    echo "   - Requires more resources, slower startup"
-    echo "   - Good for enterprise environment simulation"
-    echo
     echo "📁 Important Files:"
     echo "   - .env.postgres: PostgreSQL configuration"
-    echo "   - .env.sqlserver: SQL Server configuration"
     echo "   - docker/: Database initialization scripts"
     echo
     echo "🔧 Troubleshooting:"
@@ -307,14 +254,11 @@ main() {
             1)
                 start_postgres
                 ;;
-            2)
-                start_sqlserver
-                ;;
             3)
                 show_status
                 ;;
             4)
-                echo "Which service logs? (banking-app, banking-postgres, banking-sqlserver, or Enter for all):"
+                echo "Which service logs? (banking-app, banking-postgres, or Enter for all):"
                 read -p "Service name: " service
                 show_logs "$service"
                 ;;
@@ -354,12 +298,6 @@ else
             setup_docker_files
             start_postgres
             ;;
-        "sqlserver")
-            check_docker
-            check_docker_compose
-            setup_docker_files
-            start_sqlserver
-            ;;
         "stop")
             check_docker_compose
             stop_services
@@ -376,7 +314,7 @@ else
             show_help
             ;;
         *)
-            echo "Usage: $0 [postgres|sqlserver|stop|status|cleanup|help]"
+            echo "Usage: $0 [postgres|stop|status|cleanup|help]"
             echo "Or run without parameters for interactive menu"
             exit 1
             ;;
