@@ -6,7 +6,10 @@ from models import db, User, Transaction
 from decorators import login_required, anonymous_required, active_user_required
 import subprocess
 import csv
+import pickle
 import os
+import json
+import yaml
 
 @active_user_required
 def transaction_detail(transaction_id):
@@ -377,3 +380,137 @@ def download_export_file():
     except Exception as e:
         flash(f'Download error: {str(e)}', 'error')
         return redirect(url_for('export_transactions'))
+    
+
+
+# @active_user_required
+# def import_transactions():
+#     """
+#     VULNERABLE: Import transactions from file with deserialization vulnerability
+#     Accepts pickled data files for "advanced transaction imports"
+#     """
+#     if request.method == 'POST':
+#         if 'import_file' not in request.files:
+#             flash('No file selected for import.', 'error')
+#             return redirect(url_for('import_transactions'))
+        
+#         file = request.files['import_file']
+#         import_format = request.form.get('import_format', 'standard')
+        
+#         if file.filename == '':
+#             flash('No file selected.', 'error')
+#             return redirect(url_for('import_transactions'))
+        
+#         try:
+#             # VULNERABILITY: Direct deserialization of user-uploaded files
+#             if import_format == 'advanced':
+#                 # "Advanced format supports complex transaction metadata"
+#                 print(f"DEBUG: Processing advanced format import from {file.filename}")
+                
+#                 # Read and deserialize the file content
+#                 file_content = file.read()
+                
+#                 # VULNERABLE: Direct pickle deserialization
+#                 imported_data = pickle.loads(file_content)
+                
+#                 flash(f'Advanced import processed: {len(imported_data.get("transactions", []))} transactions found', 'success')
+                
+#             elif import_format == 'backup':
+#                 # "Restore from backup format" 
+#                 file_content = file.read()
+                
+#                 # VULNERABLE: Another deserialization point
+#                 backup_data = pickle.loads(file_content)
+                
+#                 flash(f'Backup restored successfully: {backup_data.get("message", "No message")}', 'success')
+                
+#             else:
+#                 # Safe CSV import (not vulnerable)
+#                 flash('Standard CSV import completed (simulated)', 'info')
+                
+#         except Exception as e:
+#             flash(f'Import failed: {str(e)}', 'error')
+    
+#     return render_template('import.html')
+
+
+@active_user_required
+def import_transactions():
+    """
+    VULNERABLE: Import transactions using YAML configuration files
+    Accepts YAML config files that can instantiate Python objects
+    """
+    if request.method == 'POST':
+        if 'import_file' not in request.files:
+            flash('No file selected for import.', 'error')
+            return redirect(url_for('import_transactions'))
+        
+        file = request.files['import_file']
+        import_format = request.form.get('import_format', 'standard')
+        
+        if file.filename == '':
+            flash('No file selected.', 'error')
+            return redirect(url_for('import_transactions'))
+        
+        try:
+            file_content = file.read().decode('utf-8')
+            
+            if import_format == 'yaml_config':
+                # "YAML configuration files for complex import rules"
+                print(f"DEBUG: Processing YAML configuration from {file.filename}")
+                
+                # VULNERABLE: yaml.load() can execute arbitrary Python code
+                config = yaml.load(file_content, Loader=yaml.Loader)
+                
+                # Process the configuration
+                if config:
+                    imported_count = config.get('transaction_count', 0)
+                    import_rules = config.get('import_rules', {})
+                    
+                    flash(f'YAML configuration loaded: {imported_count} transactions, {len(import_rules)} rules', 'success')
+                
+            elif import_format == 'json_template':
+                # "JSON template with processing instructions"
+                print(f"DEBUG: Processing JSON template from {file.filename}")
+                
+                template = json.loads(file_content)
+                
+                # VULNERABILITY: Execute any "preprocessing" commands
+                if 'preprocessing' in template:
+                    for cmd in template['preprocessing']:
+                        if 'command' in cmd:
+                            # VULNERABLE: Execute preprocessing commands
+                            result = eval(cmd['command'])
+                            print(f"DEBUG: Executed preprocessing: {cmd['command']} -> {result}")
+                
+                # Process template formulas
+                if 'formulas' in template:
+                    for formula_name, formula_code in template['formulas'].items():
+                        # VULNERABLE: eval() on template formulas
+                        result = eval(formula_code)
+                        template[f'formula_{formula_name}_result'] = result
+                
+                transactions = template.get('transactions', [])
+                flash(f'JSON template processed: {len(transactions)} transactions', 'success')
+                
+            elif import_format == 'config_script':
+                # "Configuration script for advanced import logic"
+                print(f"DEBUG: Processing configuration script from {file.filename}")
+                
+                # VULNERABLE: Execute configuration as Python code
+                exec(file_content)
+                
+                flash('Configuration script executed successfully', 'success')
+                
+            else:
+                # Safe CSV import (not vulnerable)
+                flash('Standard CSV import completed (simulated)', 'info')
+                
+        except yaml.YAMLError as e:
+            flash(f'YAML parsing error: {str(e)}', 'error')
+        except json.JSONDecodeError as e:
+            flash(f'JSON parsing error: {str(e)}', 'error')
+        except Exception as e:
+            flash(f'Import failed: {str(e)}', 'error')
+    
+    return render_template('import.html')

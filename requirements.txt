@@ -16,3 +16,6 @@ Flask-Migrate
 
 # For health checks and monitoring
 requests
+
+# For YAML processing
+PyYAML
