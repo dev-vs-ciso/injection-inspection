@@ -108,7 +108,7 @@ start_postgres() {
 
 # Function to show test credentials
 show_test_credentials() {
-    print_header "🔑 TEST LOGIN CREDENTIALS"
+    print_header "🔑 DOCKER TEST LOGIN CREDENTIALS"
     print_color $GREEN "The populate_db.py script has created sample users."
     print_color $GREEN "Check the console output above for specific login credentials."
     print_color $YELLOW "Common test passwords: password123, training456, demo789"
@@ -147,7 +147,8 @@ cleanup() {
         
         # Remove images that contain "banking" in the name (adjust pattern as needed)
         docker images --format "{{.Repository}}:{{.Tag}}" | grep -i banking-app | xargs -r docker rmi -f 2>/dev/null || true
-        
+        docker images --format "{{.Repository}}:{{.Tag}}" | grep -i evilcorp | xargs -r docker rmi -f 2>/dev/null || true
+
         # Alternative: Remove specific image names if you know them
         # docker rmi -f banking-app:latest 2>/dev/null || true
         # docker rmi -f banking_banking-app:latest 2>/dev/null || true
@@ -258,7 +259,7 @@ main() {
                 show_status
                 ;;
             4)
-                echo "Which service logs? (banking-app, banking-postgres, or Enter for all):"
+                echo "Which service logs? (banking-app, banking-postgres, evilcorp or Enter for all):"
                 read -p "Service name: " service
                 show_logs "$service"
                 ;;
