@@ -16,6 +16,7 @@ from application.user import login, logout, profile, preferences
 from application.api import api_stats, api_transactions
 from application.transaction import transaction_detail, search, export_transactions, download_export_file, import_transactions
 from application.feedback import feedback_list, feedback_detail, submit_feedback, feedback_by_user
+from application.ai import ai_loan_advisor, ai_transaction_research
 # Load environment variables
 load_dotenv()
 
@@ -98,6 +99,11 @@ def create_app(config_class=Config):
     app.add_url_rule('/feedback/submit', 'submit_feedback', submit_feedback, methods=['GET', 'POST'])
     app.add_url_rule('/feedback/user/<int:user_id>', 'feedback_by_user', feedback_by_user)
 
+
+    # CREATE AI BANKING ROUTES (ADD THESE)
+    app.add_url_rule('/ai/research', 'ai_transaction_research', ai_transaction_research, methods=['GET', 'POST'])
+    app.add_url_rule('/ai/loan-advisor', 'ai_loan_advisor', ai_loan_advisor, methods=['GET', 'POST'])
+    
     # Create api routes
     app.add_url_rule('/api/stats', 'api_stats', api_stats)
     app.add_url_rule('/api/transactions', 'api_transactions', api_transactions, methods=['POST'])

@@ -85,7 +85,7 @@
 
     <!-- Quick Actions -->
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">
@@ -103,6 +103,23 @@
                         </a>
                         <a href="{{ url_for('import_transactions') }}" class="btn btn-outline-danger">
                             <i class="bi bi-upload me-2"></i>Import Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-robot me-2"></i>AI-Powered Banking
+                    </h5>
+                    <div class="btn-group flex-wrap" role="group">
+                        <a href="{{ url_for('ai_transaction_research') }}" class="btn btn-outline-info">
+                            <i class="bi bi-robot me-2"></i>AI Transaction Research
+                        </a>
+                        <a href="{{ url_for('ai_loan_advisor') }}" class="btn btn-outline-success">
+                            <i class="bi bi-cash-stack me-2"></i>AI Loan Advisor
                         </a>
                     </div>
                 </div>

@@ -131,7 +131,7 @@ goto menu
 
 :show_logs
 echo.
-set /p service="Which service logs? (banking-app, banking-postgres, evilcorp-server or Enter for all): "
+set /p service="Which service logs? (banking-app, banking-postgres, evilcorp-server, banking-ollama or Enter for all): "
 if "%service%"=="" (
     echo Showing logs for all services...
     if exist .env (

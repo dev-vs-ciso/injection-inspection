@@ -100,7 +100,6 @@ start_postgres() {
     print_color $GREEN "pgAdmin (Database Management): http://localhost:8080"
     print_color $YELLOW "pgAdmin Login: admin@example.com / admin123"
     print_color $YELLOW "pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123"
-    print_color $RED "Visit: http://localhost:5000 to access the application"
     
 }
 
@@ -249,7 +248,7 @@ main() {
                 show_status
                 ;;
             4)
-                echo "Which service logs? (banking-app, banking-postgres, evilcorp-server or Enter for all):"
+                echo "Which service logs? (banking-app, banking-postgres, evilcorp-server, banking-ollama or Enter for all):"
                 read -p "Service name: " service
                 show_logs "$service"
                 ;;
