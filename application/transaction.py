@@ -433,7 +433,6 @@ def download_export_file():
     
 #     return render_template('import.html')
 
-
 @active_user_required
 def import_transactions():
     """
@@ -514,3 +513,18 @@ def import_transactions():
             flash(f'Import failed: {str(e)}', 'error')
     
     return render_template('import.html')
+
+@active_user_required
+def transaction_archive():
+    """
+    View and manage archived transactions
+    """
+
+    summary = {
+        'total_credits': 0,
+        'total_debits': 0,
+        'recent_activity_count': 0,
+        'average_score': 0
+    }
+
+    return render_template('archive.html', transactions = [], summary=summary)

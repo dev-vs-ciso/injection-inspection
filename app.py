@@ -14,7 +14,7 @@ from application.errors import register_error_handlers
 from application.home import index, dashboard
 from application.user import login, logout, profile, preferences
 from application.api import api_stats, api_transactions
-from application.transaction import transaction_detail, search, export_transactions, download_export_file, import_transactions
+from application.transaction import transaction_detail, search, export_transactions, download_export_file, import_transactions, transaction_archive
 from application.feedback import feedback_list, feedback_detail, submit_feedback, feedback_by_user
 # Load environment variables
 load_dotenv()
@@ -91,6 +91,7 @@ def create_app(config_class=Config):
     app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
     app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])
     app.add_url_rule('/import', 'import_transactions', import_transactions, methods=['GET', 'POST'])
+    app.add_url_rule('/archive', 'transaction_archive', transaction_archive, methods=['GET', 'POST'])
 
     # Create feedback routes
     app.add_url_rule('/feedback', 'feedback_list', feedback_list)

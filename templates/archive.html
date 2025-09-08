@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ BANK_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>Account: {{ current_user.account_number }} | {{ current_user.first_name }} {{ current_user.last_name }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-wallet2 fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Current Balance</h6>
+                            <h4 class="card-title mb-0">{{ current_user.balance | currency }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-arrow-down-circle fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Credits</h6>
+                            <h4 class="card-title mb-0">{{ summary.total_credits | currency }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-arrow-up-circle fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Debits</h6>
+                            <h4 class="card-title mb-0">{{ summary.total_debits | currency }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-activity fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Recent Activity</h6>
+                            <h4 class="card-title mb-0">{{ summary.recent_activity_count }}</h4>
+                            <small class="text-white-50">Last 30 days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightning-charge me-2"></i>Quick Actions
+                    </h5>
+                    <div class="btn-group flex-wrap" role="group">
+                        <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-search me-2"></i>Search Transactions
+                        </a>
+                        <a href="{{ url_for('transaction_archive') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-upload me-2"></i>Transaction Archive
+                        </a>
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-2"></i>View Profile
+                        </a>
+                        <a href="{{ url_for('export_transactions') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-download me-2"></i>Export Data
+                        </a>
+                        <a href="{{ url_for('import_transactions') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-upload me-2"></i>Import Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
