@@ -1,6 +1,6 @@
 @echo off
 :: Banking Security Training Application - Windows Docker Setup Script
-:: This script helps you run the application with either PostgreSQL or SQL Server
+:: This script helps you run the application with either PostgreSQL
 
 setlocal enabledelayedexpansion
 
@@ -41,7 +41,6 @@ echo ============================================================
 echo Choose your database option:
 echo.
 echo 1) 🐘 Start with PostgreSQL
-echo 2) 🏢 Start with SQL Server  
 echo 3) 📊 Show status
 echo 4) 📝 Show logs
 echo 5) 🛑 Stop all services
@@ -59,7 +58,7 @@ if "%choice%"=="5" goto stop_services
 if "%choice%"=="6" goto cleanup
 if "%choice%"=="7" goto show_help
 if "%choice%"=="8" goto exit_script
-echo ❌ Invalid option. Please choose 1-8.
+echo ❌ Invalid option. Please choose 1, 3-8.
 goto menu
 
 :start_postgres
@@ -132,7 +131,7 @@ goto menu
 
 :show_logs
 echo.
-set /p service="Which service logs? (banking-app, banking-postgres, or Enter for all): "
+set /p service="Which service logs? (banking-app, banking-postgres, evilcorp-server or Enter for all): "
 if "%service%"=="" (
     echo Showing logs for all services...
     if exist .env (
@@ -178,13 +177,17 @@ if /i "%confirm%"=="y" (
         !DOCKER_COMPOSE! -f docker-compose.postgres.yml down -v
     )
     
-    echo 🗑️ Removing banking-app images...
+    echo 🗑️ Removing banking-app and evilcorp-server images...
     :: Remove images that contain "banking" in the name
     for /f "tokens=*" %%i in ('docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i banking-app 2^>nul') do (
         echo Removing image: %%i
         docker rmi -f "%%i" >nul 2>&1
     )
-    
+    for /f "tokens=*" %%i in ('docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i evilcorp 2^>nul') do (
+        echo Removing image: %%i
+        docker rmi -f "%%i" >nul 2>&1
+    )
+
     docker container prune -f
     docker volume prune -f
     
@@ -205,12 +208,6 @@ echo    - Uses PostgreSQL 15 Alpine image
 echo    - Includes pgAdmin web interface on port 8080
 echo    - Lighter weight, faster startup
 echo    - Good for development and testing
-echo.
-echo 🏢 SQL Server Option:
-echo    - Uses Microsoft SQL Server 2022 Express
-echo    - Includes Adminer web interface on port 8080
-echo    - Requires more resources, slower startup
-echo    - Good for enterprise environment simulation
 echo.
 echo 📁 Important Files:
 echo    - .env.postgres: PostgreSQL configuration
