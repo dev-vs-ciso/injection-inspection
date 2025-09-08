@@ -208,6 +208,53 @@ def check_historical_tables_exist():
         except Exception:
             return False
 
+def create_archived_transactions_function():
+    """
+    Create the PostgreSQL get_archived_transactions function
+    """
+    print("\n📝 Creating get_archived_transactions PostgreSQL function...")
+    
+    function_sql = """
+    CREATE OR REPLACE FUNCTION get_archived_transactions(
+        year_param VARCHAR(4),
+        month_param VARCHAR(2)
+    )
+    RETURNS TABLE(
+        id INTEGER,
+        user_id INTEGER,
+        transaction_type VARCHAR(20),
+        amount NUMERIC(12,2),
+        company VARCHAR(100),
+        description TEXT,
+        date TIMESTAMP WITH TIME ZONE,
+        reference_number VARCHAR(50),
+        balance_after NUMERIC(12,2),
+        category VARCHAR(30)
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        query_text TEXT;
+    BEGIN
+        -- VULNERABLE: Direct string concatenation
+        query_text := 'SELECT id, user_id, transaction_type, amount, company, 
+                              description, date, reference_number, balance_after, category
+                       FROM public.transactions_' || year_param || month_param;
+        
+        RETURN QUERY EXECUTE query_text;
+    END;
+    $$;
+    """
+    
+    try:
+        db.session.execute(text(function_sql))
+        db.session.commit()
+        print("    ✓ PostgreSQL function created successfully")
+    except Exception as e:
+        db.session.rollback()
+        print(f"    ❌ Error creating function: {e}")
+        print("    ℹ️  This is normal if you're not using PostgreSQL")
+
 def main():
     """
     Main function to populate historical data
@@ -227,6 +274,9 @@ def main():
             print("❌ No users found in database!")
             print("   Run: python populate_db.py first")
             return
+        
+        # Create the PostgreSQL function for archived transactions
+        create_archived_transactions_function()
         
         # Populate historical data
         populate_all_historical_tables()
