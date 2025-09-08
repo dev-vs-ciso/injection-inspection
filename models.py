@@ -4,7 +4,9 @@ Defines User and Transaction models with relationships
 """
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
+# from werkzeug.security import generate_password_hash, check_password_hash
+import hashlib
+from sqlalchemy import text
 from datetime import datetime
 from decimal import Decimal
 from datetime import datetime, timezone
@@ -24,6 +26,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
+    role = db.Column(db.String(20), default='customer', nullable=False)  # 'customer' or 'admin'
     account_number = db.Column(db.String(20), unique=True, nullable=False)
     balance = db.Column(db.Numeric(12, 2), default=Decimal('1000.00'))
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc)) 
@@ -35,14 +38,67 @@ class User(UserMixin, db.Model):
     # Relationship to feedback    
     feedback = db.relationship('Feedback', backref='user', lazy=True, cascade='all, delete-orphan')
 
+
+    @staticmethod
+    def authenticate(email, password):
+        """
+        VULNERABLE: Authentication method with SQL injection vulnerabilities
+        This method demonstrates dangerous raw SQL usage for training purposes
+        DO NOT USE IN PRODUCTION
+        """
+        try:
+
+            password_hash = hashlib.md5(password.encode()).hexdigest()
+
+            # VULNERABILITY: Direct string interpolation allows SQL injection
+            vulnerable_query = f"""
+                SELECT id, email, password_hash, first_name, last_name, 
+                       account_number, balance, created_at, is_active 
+                FROM users 
+                WHERE password_hash = '{password_hash}'
+                    AND email = '{email}'
+                LIMIT 1
+            """
+
+            result = db.session.execute(text(vulnerable_query)).fetchone()
+
+            if result:
+                # Create a User object from the raw result
+                user = User()
+                user.id = result[0]
+                user.email = result[1] 
+                user.password_hash = result[2]
+                user.first_name = result[3]
+                user.last_name = result[4]
+                user.account_number = result[5]
+                user.balance = result[6]
+                user.created_at = result[7]
+                user.is_active = result[8]
+
+                return user
+
+            return None
+
+        except Exception as e:
+            # VULNERABILITY: Expose SQL errors to help with training
+            raise Exception(f"Database error (SQL injection point): {str(e)}")
+
     def set_password(self, password):
-        """Hash and store password securely"""
-        self.password_hash = generate_password_hash(password)
-    
+        """Hash and store password using simple MD5 (VULNERABLE for training)"""
+        # SECURE VERSION
+        # self.password_hash = generate_password_hash(password)
+
+        # VULNERABLE VERSION (for training purposes):
+        self.password_hash = hashlib.md5(password.encode()).hexdigest()
+
     def check_password(self, password):
-        """Verify password against stored hash"""
-        return check_password_hash(self.password_hash, password)
-    
+        """Verify password against stored hash using simple MD5 (VULNERABLE for training)"""
+        # SECURE VERSION
+        # return check_password_hash(self.password_hash, password)
+
+        # VULNERABLE VERSION (for training purposes):
+        return self.password_hash == hashlib.md5(password.encode()).hexdigest()
+
     def get_full_name(self):
         """Return user's full name"""
         return f"{self.first_name} {self.last_name}"

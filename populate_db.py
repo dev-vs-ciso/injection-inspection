@@ -164,9 +164,24 @@ def create_users(count=None):
     users_with_passwords = []
     used_emails = set()
     used_account_numbers = set()
-    
+
+    print("Creating admin account...")
+    admin = User(
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="Adminson",
+        account_number="1001",
+        balance=0,
+        role='admin',
+        created_at=fake.date_time_between(start_date='-2y', end_date='-6m'),
+        is_active=True,
+    )
+    password = generate_random_password(12)
+    admin.set_password(password)
+    users_with_passwords.append((admin, password))
+
     print(f"Creating {count} user accounts...")
-    
+
     for i in range(count):
         # Generate unique email
         while True:
@@ -191,6 +206,7 @@ def create_users(count=None):
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             account_number=account_number,
+            role='customer',
             balance=Decimal(str(round(random.uniform(500.00, 25000.00), 2))),
             created_at=fake.date_time_between(start_date='-2y', end_date='-6m'),
             is_active=True
@@ -219,6 +235,11 @@ def create_transactions_for_user(user, transaction_count=None):
     Create transactions for a specific user over the last 6 months
     Returns list of created transactions
     """
+
+    # Admin users do not get transactions
+    if (user.role == 'admin'):
+        return []
+
     if transaction_count is None:
         transaction_count = random.randint(70, 100)
     
@@ -322,6 +343,10 @@ def create_feedback_for_users(users):
     print(f"  Generating feedback from {num_feedback_users}/{len(users)} users...")
     
     for i, user in enumerate(feedback_users):
+        # skip admin users
+        if (user.role == 'admin'):
+            continue
+
         # Each user might leave 1-3 feedback entries over time
         num_feedback = random.choices([1, 2, 3], weights=[70, 25, 5])[0]
         
