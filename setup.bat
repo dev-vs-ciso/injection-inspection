@@ -103,7 +103,8 @@ echo pgAdmin Login: admin@example.com / admin123
 echo pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123
 
 echo.
-goto show_test_credentials
+pause
+goto menu
 
 :show_status
 echo.

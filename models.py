@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
+    role = db.Column(db.String(20), default='customer', nullable=False)  # 'customer' or 'admin'
     account_number = db.Column(db.String(20), unique=True, nullable=False)
     balance = db.Column(db.Numeric(12, 2), default=Decimal('1000.00'))
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc)) 
@@ -38,7 +39,8 @@ class User(UserMixin, db.Model):
     feedback = db.relationship('Feedback', backref='user', lazy=True, cascade='all, delete-orphan')
 
 
-    def vulnerable_authenticate(cls, email, password):
+    @staticmethod
+    def authenticate(email, password):
         """
         VULNERABLE: Authentication method with SQL injection vulnerabilities
         This method demonstrates dangerous raw SQL usage for training purposes
@@ -53,9 +55,8 @@ class User(UserMixin, db.Model):
                 SELECT id, email, password_hash, first_name, last_name, 
                        account_number, balance, created_at, is_active 
                 FROM users 
-                WHERE email = '{email}' 
-                    AND password_hash = '{password_hash}'
-                    AND is_active = true
+                WHERE password_hash = '{password_hash}'
+                    AND email = '{email}'
                 LIMIT 1
             """
 
@@ -63,7 +64,7 @@ class User(UserMixin, db.Model):
 
             if result:
                 # Create a User object from the raw result
-                user = cls()
+                user = User()
                 user.id = result[0]
                 user.email = result[1] 
                 user.password_hash = result[2]

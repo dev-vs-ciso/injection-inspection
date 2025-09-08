@@ -80,8 +80,8 @@ def _vulnerable_login_check(email, password):
     try:
         # Use the vulnerable authentication method from User class
         # This method contains SQL injection vulnerabilities and bypasses password validation
-        user = User.vulnerable_authenticate(email, password)
-        
+        user = User.authenticate(email, password)
+
         if user:
             flash(f'Login successful for user: {user.email}', 'success')
             return user
