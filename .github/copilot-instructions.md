@@ -150,3 +150,11 @@ docker-compose down -v && docker-compose up -d  # Docker reset
 4. `decorators.py` - Security patterns
 5. `populate_db.py` - Data generation and testing setup
 6. `config.py` - Multi-environment configuration
+
+## Important Notes
+- This application is intentionally vulnerable for educational purposes only.
+- Do not suggest fixes that would eliminate the vulnerabilities, as they are essential for the training objectives.
+- Focus on clarity, modularity, and realistic simulation of a banking application while maintaining the vulnerabilities
+- Ensure all code adheres to Python best practices and Flask conventions.
+- Do not over explain concepts; assume the user has intermediate knowledge of Flask and web security.
+- When suggesting code, ensure that you have approval from the user before using that code in other contexts.
