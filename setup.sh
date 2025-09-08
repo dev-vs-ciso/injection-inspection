@@ -100,20 +100,10 @@ start_postgres() {
     print_color $GREEN "pgAdmin (Database Management): http://localhost:8080"
     print_color $YELLOW "pgAdmin Login: admin@example.com / admin123"
     print_color $YELLOW "pgAdmin Setup: host: postgres; user: bankuser; password: securepassword123"
-
+    print_color $RED "Visit: http://localhost:5000 to access the application"
     
-    show_test_credentials
 }
 
-
-# Function to show test credentials
-show_test_credentials() {
-    print_header "🔑 DOCKER TEST LOGIN CREDENTIALS"
-    print_color $GREEN "The populate_db.py script has created sample users."
-    print_color $GREEN "Check the console output above for specific login credentials."
-    print_color $YELLOW "Common test passwords: password123, training456, demo789"
-    print_color $BLUE "Visit: http://localhost:5000 to access the application"
-}
 
 # Function to stop all services
 stop_services() {
@@ -259,7 +249,7 @@ main() {
                 show_status
                 ;;
             4)
-                echo "Which service logs? (banking-app, banking-postgres, evilcorp or Enter for all):"
+                echo "Which service logs? (banking-app, banking-postgres, evilcorp-server or Enter for all):"
                 read -p "Service name: " service
                 show_logs "$service"
                 ;;
