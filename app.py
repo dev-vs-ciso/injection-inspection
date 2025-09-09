@@ -87,7 +87,7 @@ def create_app(config_class=Config):
     app.add_url_rule('/preferences', 'preferences', preferences, methods=['GET', 'POST'])
 
     # Create transaction routes
-    app.add_url_rule('/transaction/<int:transaction_id>', 'transaction_detail', transaction_detail)
+    app.add_url_rule('/transaction/<int:transaction_id>', 'transaction_detail', transaction_detail, methods=['GET', 'POST'])
     app.add_url_rule('/search', 'search', search, methods=['GET', 'POST'])
     app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
     app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])

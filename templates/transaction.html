@@ -125,27 +125,28 @@
                     </div>
                     {% endif %}
 
-                    {% if transaction.note %}
+                    <!-- User Note Section -->
                     <div class="row">
                         <div class="col-sm-4">
-                            <strong>Note:</strong>
+                            <strong>Personal Note:</strong>
                         </div>
                         <div class="col-sm-8">
-                            {{ transaction.note }}
-                            <button type="button" class="btn btn-outline-primary">
-                                <i class="bi bi-receipt me-2"></i>Edit Note
+                            {% if rendered_note %}
+                            <div class="mb-2">
+                                <!-- VULNERABLE: Rendered template content (allows template injection) -->
+                                {{ rendered_note | safe }}
+                            </div>
+                            {% elif transaction.note %}
+                            <div class="mb-2">
+                                <!-- Fallback: Raw note content if rendering failed -->
+                                {{ transaction.note }}
+                            </div>
+                            {% endif %}
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noteModal">
+                                <i class="bi bi-receipt me-1"></i>{{ 'Edit Note' if transaction.note else 'Add Note' }}
                             </button>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <button type="button" class="btn btn-outline-primary">
-                                <i class="bi bi-receipt me-2"></i>Add Note
-                            </button>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -240,6 +241,54 @@
         </div>
     </div>
 </div>
+
+<!-- Note Edit Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('transaction_detail', transaction_id=transaction.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteModalLabel">
+                        <i class="bi bi-pencil me-2"></i>{{ 'Edit Personal Note' if transaction.note else 'Add Personal Note' }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="transaction_note" class="form-label">Note Content</label>
+                        <textarea class="form-control" id="transaction_note" name="transaction_note" rows="6" 
+                                  placeholder="Add your personal note about this transaction...">{{ transaction.note or '' }}</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            You can add personal notes, reminders, or additional context about this transaction.
+                            HTML formatting is supported for rich content.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Use HTML tags like &lt;b&gt;, &lt;i&gt;, &lt;u&gt; for formatting, 
+                        or add links with &lt;a href="..."&gt;...&lt;/a&gt;
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Save Note
+                    </button>
+                    {% if transaction.note %}
+                    <button type="button" id="clearNoteBtn" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Clear Note
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -255,6 +304,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(printStyle);
+    
+    // Handle clear note button
+    const clearButton = document.getElementById('clearNoteBtn');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            // Clear the textarea content and submit the form
+            const textarea = document.getElementById('transaction_note');
+            const form = clearButton.closest('form');
+            if (textarea && form) {
+                textarea.value = '';
+                form.submit();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

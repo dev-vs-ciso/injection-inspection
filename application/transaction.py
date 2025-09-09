@@ -1,5 +1,5 @@
 import random
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import or_, and_, text
@@ -11,12 +11,14 @@ import pickle
 import os
 import json
 import yaml
+from jinja2 import Template
 
 @active_user_required
 def transaction_detail(transaction_id):
     """
-    Detailed view of a specific transaction
+    Detailed view of a specific transaction with note editing capability
     Shows all transaction information and related data
+    Handles note updates with VULNERABLE template injection
     """
     # Get transaction and verify it belongs to current user
     transaction = Transaction.query.filter_by(
@@ -28,6 +30,23 @@ def transaction_detail(transaction_id):
         flash('Transaction not found or you do not have permission to view it.', 'error')
         return redirect(url_for('dashboard'))
     
+    # Handle note update via POST
+    if request.method == 'POST':
+        new_note = request.form.get('transaction_note', '').strip()
+        
+        try:
+            # Update the note
+            transaction.note = new_note if new_note else None
+            db.session.commit()
+            if new_note:
+                flash('Transaction note updated successfully.', 'success')
+            else:
+                flash('Transaction note cleared.', 'info')
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating note: {str(e)}', 'error')
+    
     # Get related transactions (same company, recent)
     related_transactions = Transaction.query.filter(
         and_(
@@ -37,11 +56,32 @@ def transaction_detail(transaction_id):
         )
     ).order_by(Transaction.date.desc()).limit(5).all()
     
-    transaction.note = "This is a sample note for demonstration purposes." if random.choice([True, False]) else None
+    # VULNERABLE: Process note through Jinja2 template rendering
+
+    # IN-UNIVERSE: Since the note can have limited html functionality, we will render it separately, so that we can have control of any errors,
+    # and also show the raw note if rendering fails.
+    # This also allows protection against XSS by controlling the rendering context.
+    rendered_note = None
+    if transaction.note:
+        try:
+            # VULNERABILITY: Direct template rendering of user input
+            # This allows template injection attacks
+            template = Template(transaction.note)
+            rendered_note = template.render(
+                current_user=current_user,
+                transaction=transaction,
+                config=current_app.config,
+                request=request
+            )
+        except Exception as e:
+            # If template rendering fails, show the raw note
+            rendered_note = transaction.note
+            flash(f'Note rendering error: {str(e)}', 'warning')
     
     return render_template('transaction.html', 
                             transaction=transaction, 
-                            related_transactions=related_transactions)
+                            related_transactions=related_transactions,
+                            rendered_note=rendered_note)
 
 
 
