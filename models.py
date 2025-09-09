@@ -135,6 +135,7 @@ class Transaction(db.Model):
     reference_number = db.Column(db.String(50), unique=True, nullable=False)
     balance_after = db.Column(db.Numeric(12, 2), nullable=False)
     category = db.Column(db.String(30))  # Optional categorization
+    note = db.Column(db.Text)  # User note, Optional
     
     @classmethod
     def get_total_volume(cls):

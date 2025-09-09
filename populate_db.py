@@ -715,8 +715,8 @@ def populate_database():
             count = feedback_stats.get(score, 0)
             print(f"   {score} stars: {count} reviews")
         
-        # Return a random user for login testing
-        test_user, test_password = random.choice(users_with_passwords)
+        # Return a random user for login testing, but never return the admin
+        test_user, test_password = random.choice([up for up in users_with_passwords if up[0].role != 'admin'])
         return {
             'email': test_user.email,
             'password': test_password,
@@ -741,7 +741,7 @@ def create_and_populate_historical_data():
     try:
         # Import the historical functions
         from create_historical_tables import create_all_historical_tables
-        from populate_historical_data import populate_all_historical_tables
+        from populate_historical_data import populate_all_historical_tables, create_archived_transactions_function
         
         # Create historical tables
         print("Step 1: Creating historical tables...")
@@ -751,6 +751,9 @@ def create_and_populate_historical_data():
             print("Step 2: Populating historical tables...")
             populate_all_historical_tables()
             print("✅ Historical data creation complete!")
+            # Create archived transactions function
+            create_archived_transactions_function()
+            print("✅ Archived transactions function created!")
         else:
             print("❌ Failed to create historical tables")
             
