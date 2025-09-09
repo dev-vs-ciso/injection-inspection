@@ -697,6 +697,9 @@ def populate_database():
         # Add special XSS examples for training
         special_feedback = create_realistic_feedback_distribution()
         
+        # Create historical data
+        create_and_populate_historical_data()
+        
         print(f"\n✅ Database population completed successfully!")
         print(f"📊 Summary:")
         print(f"   Users created: {len(users)}")
@@ -726,6 +729,36 @@ def populate_database():
         print(f"Error type: {type(e).__name__}")
         db.session.rollback()
         return None
+    
+def create_and_populate_historical_data():
+    """
+    Create and populate historical transaction tables
+    """
+    print("\n" + "=" * 60)
+    print("🏛️  CREATING HISTORICAL DATA (2020-2021)")
+    print("=" * 60)
+    
+    try:
+        # Import the historical functions
+        from create_historical_tables import create_all_historical_tables
+        from populate_historical_data import populate_all_historical_tables
+        
+        # Create historical tables
+        print("Step 1: Creating historical tables...")
+        created_tables = create_all_historical_tables()
+        
+        if created_tables:
+            print("Step 2: Populating historical tables...")
+            populate_all_historical_tables()
+            print("✅ Historical data creation complete!")
+        else:
+            print("❌ Failed to create historical tables")
+            
+    except ImportError as e:
+        print(f"⚠️  Historical table modules not found: {e}")
+        print("   Historical data creation skipped")
+    except Exception as e:
+        print(f"❌ Error creating historical data: {e}")
     
 
 def display_login_info(user_info):

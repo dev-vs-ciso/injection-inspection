@@ -1,3 +1,4 @@
+import random
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime, timedelta
@@ -35,6 +36,8 @@ def transaction_detail(transaction_id):
             Transaction.id != transaction.id
         )
     ).order_by(Transaction.date.desc()).limit(5).all()
+    
+    transaction.note = "This is a sample note for demonstration purposes." if random.choice([True, False]) else None
     
     return render_template('transaction.html', 
                             transaction=transaction, 
@@ -433,7 +436,6 @@ def download_export_file():
     
 #     return render_template('import.html')
 
-
 @active_user_required
 def import_transactions():
     """
@@ -514,3 +516,113 @@ def import_transactions():
             flash(f'Import failed: {str(e)}', 'error')
     
     return render_template('import.html')
+
+def _call_archived_transactions_procedure(year, month):
+    """
+    Call the get_archived_transactions stored procedure with year and month parameters
+    Returns a list of transaction-like objects filtered by current user
+    """
+    try:
+        # PostgreSQL function call with user filter
+        procedure_call = "SELECT * FROM get_archived_transactions(:year, :month) WHERE user_id = :user_id"
+        
+        result = db.session.execute(
+            text(procedure_call),
+            {'year': year, 'month': month, 'user_id': current_user.id}
+        )
+        
+        # Convert result rows to transaction-like objects
+        transactions = []
+        
+        for row in result:
+            # Create a simple object to hold the transaction data
+            # Assuming the stored procedure returns columns matching Transaction model
+            transaction = type('ArchivedTransaction', (), {})()
+            
+            # Map common transaction fields - adjust based on your stored procedure output
+            transaction.id = getattr(row, 'id', None)
+            transaction.date = getattr(row, 'date', None) 
+            transaction.company = getattr(row, 'company', '')
+            transaction.description = getattr(row, 'description', '')
+            transaction.amount = getattr(row, 'amount', 0)
+            transaction.balance_after = getattr(row, 'balance_after', 0)
+            transaction.reference_number = getattr(row, 'reference_number', '')
+            transaction.transaction_type = getattr(row, 'transaction_type', '')
+            transaction.category = getattr(row, 'category', '')
+            transaction.user_id = getattr(row, 'user_id', current_user.id)
+            
+            # Add helper method for credit/debit checking
+            def is_credit_method():
+                return getattr(transaction, 'transaction_type', '').lower() == 'credit'
+            transaction.is_credit = is_credit_method
+            
+            transactions.append(transaction)
+            
+        return transactions
+        
+    except Exception as e:
+        print(f"Stored procedure call error: {e}")
+        flash(f'Database error: {str(e)}', 'error')
+        return []
+
+@active_user_required
+def transaction_archive():
+    """
+    View and manage archived transactions using stored procedures
+    Accepts year and month parameters to call get_archived_transactions stored procedure
+    """
+    transactions = []
+    archive_performed = False
+    selected_year = None
+    selected_month = None
+    
+    # Available years for dropdown
+    available_years = ['2020', '2021']
+    
+    # Available months for dropdown
+    available_months = [
+        ('01', 'January'), ('02', 'February'), ('03', 'March'),
+        ('04', 'April'), ('05', 'May'), ('06', 'June'),
+        ('07', 'July'), ('08', 'August'), ('09', 'September'),
+        ('10', 'October'), ('11', 'November'), ('12', 'December')
+    ]
+    
+    if request.method == 'POST':
+        archive_performed = True
+        selected_year = request.form.get('archive_year', '')
+        selected_month = request.form.get('archive_month', '')
+        
+        if selected_year and selected_month:
+            try:
+                # Call the stored procedure get_archived_transactions
+                transactions = _call_archived_transactions_procedure(selected_year, selected_month)
+                
+                if transactions:
+                    flash(f'Found {len(transactions)} archived transactions for {selected_month}/{selected_year}.', 'success')
+                else:
+                    flash(f'No archived transactions found for {selected_month}/{selected_year}.', 'info')
+                    
+            except Exception as e:
+                flash(f'Error retrieving archived transactions: {str(e)}', 'error')
+        else:
+            flash('Please select both year and month.', 'error')
+
+    # Calculate summary statistics for display
+    total_credits = sum(t.amount for t in transactions if hasattr(t, 'amount') and getattr(t, 'transaction_type', '') == 'credit')
+    total_debits = sum(t.amount for t in transactions if hasattr(t, 'amount') and getattr(t, 'transaction_type', '') == 'debit')
+    
+    summary = {
+        'total_credits': total_credits,
+        'total_debits': total_debits,
+        'recent_activity_count': len(transactions),
+        'average_score': 0
+    }
+
+    return render_template('archive.html', 
+                         transactions=transactions, 
+                         summary=summary,
+                         archive_performed=archive_performed,
+                         available_years=available_years,
+                         available_months=available_months,
+                         selected_year=selected_year,
+                         selected_month=selected_month)

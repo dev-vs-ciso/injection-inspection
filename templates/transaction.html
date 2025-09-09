@@ -115,12 +115,34 @@
                     </div>
                     
                     {% if transaction.description %}
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-sm-4">
                             <strong>Description:</strong>
                         </div>
                         <div class="col-sm-8">
                             {{ transaction.description }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if transaction.note %}
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>Note:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ transaction.note }}
+                            <button type="button" class="btn btn-outline-primary">
+                                <i class="bi bi-receipt me-2"></i>Edit Note
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <button type="button" class="btn btn-outline-primary">
+                                <i class="bi bi-receipt me-2"></i>Add Note
+                            </button>
                         </div>
                     </div>
                     {% endif %}
