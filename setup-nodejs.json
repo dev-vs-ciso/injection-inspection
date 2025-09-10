@@ -1,0 +1,12 @@
+{
+  "name": "setup-nodejs",
+  "version": "1.0.0",
+  "scripts": {
+    "install-deps": "cd nodejs && npm install",
+    "build": "cd nodejs && npm run build",
+    "start": "cd nodejs && npm start",
+    "dev": "cd nodejs && npm run dev",
+    "populate": "cd nodejs && npm run populate",
+    "setup": "npm run install-deps && npm run populate && npm run dev"
+  }
+}

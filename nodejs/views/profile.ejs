@@ -1,0 +1,138 @@
+<%- include('partials/header', { 
+    title: 'User Profile - InjectiBank',
+    user: user 
+}) %>
+
+<div class="container">
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Profile Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">First Name</label>
+                            <p class="form-control-plaintext"><%= user.first_name %></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Last Name</label>
+                            <p class="form-control-plaintext"><%= user.last_name %></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <p class="form-control-plaintext"><%= user.email %></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            <p class="form-control-plaintext"><%= user.phone || 'Not provided' %></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Account Status</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-<%= user.is_active ? 'success' : 'danger' %>">
+                                    <%= user.is_active ? 'Active' : 'Inactive' %>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Member Since</label>
+                            <p class="form-control-plaintext">
+                                <%= user.date_joined ? user.date_joined.toLocaleDateString() : 'Unknown' %>
+                            </p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label text-muted">Address</label>
+                            <p class="form-control-plaintext"><%= user.address || 'Not provided' %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Account Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Total Transactions</span>
+                        <strong><%= transaction_count || 0 %></strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Current Balance</span>
+                        <strong class="text-success">$<%= parseFloat(current_balance || 0).toFixed(2) %></strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Last Login</span>
+                        <small class="text-muted">
+                            <%= user.last_login ? user.last_login.toLocaleString() : 'First time' %>
+                        </small>
+                    </div>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <a href="/preferences" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-cog me-2"></i>Account Settings
+                        </a>
+                        <a href="/feedback/submit" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-comment me-2"></i>Submit Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                    <a href="/search" class="btn btn-sm btn-outline-primary">View All Transactions</a>
+                </div>
+                <div class="card-body">
+                    <% if (recent_transactions && recent_transactions.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Company</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% recent_transactions.slice(0, 10).forEach(function(transaction) { %>
+                                    <tr>
+                                        <td><%= transaction.date.toLocaleDateString() %></td>
+                                        <td><%= transaction.company %></td>
+                                        <td class="text-truncate" style="max-width: 300px;">
+                                            <%= transaction.description %>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="<%= transaction.amount >= 0 ? 'text-success' : 'text-danger' %>">
+                                                <%= transaction.amount >= 0 ? '+' : '' %>$<%= transaction.amount.toFixed(2) %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-history fa-2x mb-3"></i>
+                            <p>No recent activity found.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

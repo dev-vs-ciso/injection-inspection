@@ -1,0 +1,22 @@
+<!-- Flash Messages -->
+<% if (messages && Object.keys(messages).length > 0) { %>
+    <div class="container mt-3">
+        <% Object.keys(messages).forEach(function(category) { %>
+            <% messages[category].forEach(function(message) { %>
+                <div class="alert alert-<%= category === 'error' ? 'danger' : category %> alert-dismissible fade show" role="alert">
+                    <% if (category === 'error') { %>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <% } else if (category === 'success') { %>
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                    <% } else if (category === 'info') { %>
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                    <% } else { %>
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <% } %>
+                    <%- message %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% }); %>
+        <% }); %>
+    </div>
+<% } %>

@@ -10,8 +10,8 @@ import string
 from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
-from app import create_app
-from models import db, User, Transaction, Feedback
+from python.app import create_app
+from python.models import db, User, Transaction, Feedback
 
 # Initialize Faker for generating realistic sample data
 fake = Faker()
@@ -780,7 +780,7 @@ def display_login_info(user_info):
     print(f"Account:  {user_info['account_number']}")
     print("=" * 60)
     print("🚀 You can now start the application and login with these credentials!")
-    print("   Run: python app.py")
+    print("   Run: python python/app.py")
     print("=" * 60)
 
 

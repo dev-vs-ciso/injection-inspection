@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: banking-postgres-dotnet
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: banking_password_2024!
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts with Python version
+    volumes:
+      - postgres_data_dotnet:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - banking-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d banking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # .NET Banking Application
+  banking-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: banking-app-dotnet
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=banking;Username=postgres;Password=banking_password_2024!
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=banking
+      - DB_USER=postgres
+      - DB_PASS=banking_password_2024!
+    ports:
+      - "4000:4000"  # Changed to port 4000 for .NET app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - banking-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: banking-pgadmin-dotnet
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@banking.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5051:80"  # Different port to avoid conflicts
+    depends_on:
+      - postgres
+    networks:
+      - banking-network
+    restart: unless-stopped
+    volumes:
+      - pgadmin_data_dotnet:/var/lib/pgadmin
+
+networks:
+  banking-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  postgres_data_dotnet:
+    driver: local
+  pgadmin_data_dotnet:
+    driver: local

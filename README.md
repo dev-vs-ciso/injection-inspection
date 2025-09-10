@@ -23,22 +23,21 @@ A Flask-based simulated banking application designed for security training purpo
 
 ```
 banking_app/
-├── app.py                 # Main Flask application
-├── models.py             # Database models (User, Transaction)
-├── urls.py                # URL routes and view functions
-├── decorators.py         # Custom decorators for security
-├── config.py             # Configuration settings
+├── python/               # Python application files
+│   ├── app.py           # Main Flask application
+│   ├── models.py        # Database models (User, Transaction)
+│   ├── decorators.py    # Custom decorators for security
+│   ├── config.py        # Configuration settings
+│   ├── application/     # Flask routes and logic modules
+│   ├── templates/       # HTML templates
+│   ├── migrations/      # Database migrations
+│   └── banking.db       # SQLite database file
 ├── populate_db.py        # Database population tool
 ├── requirements.txt      # Python dependencies
 ├── README.md            # This file
-└── templates/           # HTML templates
-    ├── base.html        # Base template with navigation
-    ├── index.html       # Home page with bank stats
-    ├── login.html       # User login page
-    ├── dashboard.html   # User account dashboard
-    ├── transaction.html # Transaction detail view
-    ├── search.html      # Transaction search page
-    └── profile.html     # User profile page
+├── docker/              # Docker configuration files
+├── knowledge/           # Documentation and knowledge base
+└── setup scripts & other project files
 ```
 
 ## Quick Start
@@ -111,7 +110,7 @@ Account:  123456789012
 ### 5. Start the Application
 
 ```bash
-python app.py
+python python/app.py
 ```
 
 The application will start at: `http://127.0.0.1:5000`
@@ -139,7 +138,7 @@ The population tool generates random users, with random password
 
 ### Database Configuration
 
-Edit `config.py` or set environment variables:
+Edit `python/config.py` or set environment variables:
 
 ```python
 # Default SQLite (no setup required)
@@ -230,7 +229,7 @@ This application may contain intentional security vulnerabilities for educationa
 
 ```bash
 export FLASK_DEBUG=1
-python app.py
+python python/app.py
 ```
 
 ### Resetting the Database
@@ -244,17 +243,17 @@ python populate_db.py
 ### Adding New Features
 
 The application uses a modular structure:
-- Add new routes in `py`
-- Add new models in `models.py`
-- Add new templates in `templates/`
-- Add new decorators in `decorators.py`
+- Add new routes in `python/application/`
+- Add new models in `python/models.py`
+- Add new templates in `python/templates/`
+- Add new decorators in `python/decorators.py`
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Database Connection Error:**
-- Check database credentials in `config.py`
+- Check database credentials in `python/config.py`
 - Ensure database server is running
 - Verify database exists and user has permissions
 

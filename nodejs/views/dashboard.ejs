@@ -1,0 +1,122 @@
+<%- include('partials/header', { 
+    title: 'Dashboard - ' + BANK_NAME,
+    user: user 
+}) %>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Welcome Section -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">Welcome back, <%= user.firstName %>!</h2>
+                    <p class="text-muted">
+                        Account: <%= user.accountNumber %> | Balance: $<%= parseFloat(user.balance || 0).toFixed(2) %>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Summary -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Account Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Current Balance</span>
+                        <h4 class="mb-0 text-success">$<%= parseFloat(user.balance || 0).toFixed(2) %></h4>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Total Credits</small>
+                            <strong class="text-success">$<%= (summary && summary.total_credits ? summary.total_credits.toFixed(2) : '0.00') %></strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Total Debits</small>
+                            <strong class="text-danger">$<%= (summary && summary.total_debits ? Math.abs(summary.total_debits).toFixed(2) : '0.00') %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/search" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Search Transactions
+                        </a>
+                        <a href="/profile" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-2"></i>View Profile
+                        </a>
+                        <a href="/feedback/submit" class="btn btn-outline-info">
+                            <i class="bi bi-chat-square-text me-2"></i>Submit Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Transactions</h5>
+                    <a href="/search" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <% if (transactions && transactions.data && transactions.data.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Company</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% transactions.data.slice(0, 5).forEach(function(transaction) { %>
+                                    <tr>
+                                        <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+                                        <td><%= transaction.company %></td>
+                                        <td class="text-truncate" style="max-width: 200px;">
+                                            <%= transaction.description %>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="<%= transaction.amount >= 0 ? 'text-success' : 'text-danger' %>">
+                                                $<%= Math.abs(transaction.amount).toFixed(2) %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-receipt fa-2x mb-3"></i>
+                            <p>No recent transactions found.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <%- include('partials/footer') %>
+    <%- include('partials/scripts') %>
+</body>
+</html>

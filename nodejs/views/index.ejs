@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home - <%= BANK_NAME %></title>
+    <%- include('partials/head') %>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+    <%- include('partials/flash-messages') %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container my-5">
+            <!-- Hero Section -->
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-primary">Welcome to <%= BANK_NAME %> Financial</h1>
+                    <p class="lead text-muted">Your trusted partner in digital banking solutions and financial services.</p>
+                    
+                    <% if (!user) { %>
+                    <p class="mt-4">
+                        <a href="/login" class="btn btn-primary btn-lg me-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Access Your Account
+                        </a>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            This is a training environment.
+                        </small>
+                    </p>
+                    <% } else { %>
+                    <p class="mt-4">
+                        <a href="/dashboard" class="btn btn-primary btn-lg">
+                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                        </a>
+                    </p>
+                    <% } %>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cpu display-1 text-white"></i>
+                            <div class="mb-2">
+                                <% const avgScore = stats.average_score || 4.2; %>
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <% if (i <= Math.floor(avgScore)) { %>
+                                        <i class="bi bi-star-fill"></i>
+                                    <% } else if (i - 0.5 <= avgScore) { %>
+                                        <i class="bi bi-star-half"></i>
+                                    <% } else { %>
+                                        <i class="bi bi-star"></i>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                            <h3 class="mb-0">AI-Powered</h3>
+                            <small>Banking Solutions</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card card-stats text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-people-fill display-4 me-3"></i>
+                                <div>
+                                    <h3 class="mb-0"><%= stats.total_users || 0 %></h3>
+                                    <small>Active Users</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-arrow-left-right display-4 me-3"></i>
+                                <div>
+                                    <h3 class="mb-0"><%= stats.total_transactions || 0 %></h3>
+                                    <small>Transactions</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-currency-dollar display-4 me-3"></i>
+                                <div>
+                                    <h3 class="mb-0">$<%= (stats.total_volume || 0).toLocaleString() %></h3>
+                                    <small>Total Volume</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-graph-up display-4 me-3"></i>
+                                <div>
+                                    <h3 class="mb-0">$<%= (stats.monthly_volume || 0).toLocaleString() %></h3>
+                                    <small>This Month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Training Notice -->
+            <div class="alert alert-security border-start border-warning border-4 mb-5" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-shield-exclamation display-6 me-4"></i>
+                    <div>
+                        <h4 class="alert-heading">🎯 Security Training Environment</h4>
+                        <p class="mb-2">This application contains <strong>intentional security vulnerabilities</strong> for educational purposes:</p>
+                        <ul class="mb-2">
+                            <li><strong>SQL Injection</strong> vulnerabilities in login and search functions</li>
+                            <li><strong>Cross-Site Scripting (XSS)</strong> in user-generated content</li>
+                            <li><strong>Command Injection</strong> in export/import features</li>
+                            <li><strong>Authentication bypasses</strong> and session management flaws</li>
+                        </ul>
+                        <p class="mb-0">
+                            <strong>⚠️ DO NOT USE IN PRODUCTION!</strong> This is for learning purposes only.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-shield-lock display-4 text-primary mb-3"></i>
+                            <h5>Learn Security</h5>
+                            <p class="text-muted">Discover common vulnerabilities in web applications and learn how to identify and exploit them safely.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-code-slash display-4 text-primary mb-3"></i>
+                            <h5>Hands-on Practice</h5>
+                            <p class="text-muted">Practice identifying and exploiting vulnerabilities like SQL injection, XSS, and authentication bypasses.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-graph-up display-4 text-primary mb-3"></i>
+                            <h5>Skill Development</h5>
+                            <p class="text-muted">Build your cybersecurity skills in a controlled environment with realistic banking scenarios.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+    <%- include('partials/scripts') %>
+</body>
+</html>

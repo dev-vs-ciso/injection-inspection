@@ -1,0 +1,222 @@
+@model dynamic
+
+@{
+    ViewData["Title"] = "Preferences - " + Configuration["BankName"];
+}
+
+<div class="container my-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Home")">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Preferences</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-gear me-2"></i>User Preferences
+                    </h1>
+                    <p class="text-muted mb-0">Customize your banking experience with advanced configuration options</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Standard Preferences -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-sliders me-2"></i>Dashboard Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" asp-action="Preferences" asp-controller="User">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="dashboardLayout" class="form-label">Dashboard Layout</label>
+                                <select class="form-select" id="dashboardLayout" name="dashboardLayout">
+                                    <option value="default">Default</option>
+                                    <option value="compact">Compact</option>
+                                    <option value="detailed">Detailed</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="theme" class="form-label">Theme</label>
+                            <select class="form-select" id="theme" name="theme">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Dashboard Widgets</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="widgets" value="balance" id="widget-balance" checked>
+                                <label class="form-check-label" for="widget-balance">Account Balance</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="widgets" value="recent-transactions" id="widget-transactions" checked>
+                                <label class="form-check-label" for="widget-transactions">Recent Transactions</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="widgets" value="quick-actions" id="widget-actions" checked>
+                                <label class="form-check-label" for="widget-actions">Quick Actions</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="widgets" value="notifications" id="widget-notifications">
+                                <label class="form-check-label" for="widget-notifications">Notifications</label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check2 me-2"></i>Save Standard Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- Advanced Preferences with Template Injection Vulnerability -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-code-square me-2"></i>Advanced Configuration
+                        <span class="badge bg-danger ms-2">Expert Mode</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This advanced configuration allows custom templates. Only modify if you understand the implications.
+                    </div>
+                    
+                    <form method="POST" asp-action="Preferences" asp-controller="User">
+                        <input type="hidden" name="dashboardLayout" value="default" />
+                        <input type="hidden" name="theme" value="light" />
+                        
+                        <div class="mb-4">
+                            <label for="customConfig" class="form-label fw-bold">
+                                <i class="bi bi-gear me-1"></i>Custom Configuration Template
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">
+                                Advanced users can customize their dashboard using template syntax. 
+                                Use variables like {{ user.name }} or {{ balance }}.
+                            </small>
+                            <textarea 
+                                class="form-control font-monospace" 
+                                id="customConfig" 
+                                name="customConfig" 
+                                rows="10"
+                                placeholder="Enter custom configuration template...&#10;Example:&#10;Welcome {{ user.FirstName }}!&#10;Your balance: ${{ balance }}&#10;&#10;{% for transaction in recent_transactions %}&#10;- {{ transaction.amount }}&#10;{% endfor %}"
+                            ></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-upload me-2"></i>Apply Advanced Config
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetAdvanced()">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Template injection vulnerability examples (hidden) -->
+                    <!-- 
+                    VULNERABILITY: Template injection through customConfig parameter
+                    Test payloads:
+                    - {{ 7*7 }} (should output 49)
+                    - {% for item in System.Environment.GetEnvironmentVariables() %}{{ item }}{% endfor %}
+                    - {{ "whoami" | shell }} (if shell filter exists)
+                    -->
+                    
+                </div>
+            </div>
+            
+            <!-- Configuration Preview -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-eye me-2"></i>Configuration Preview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.ConfigPreview != null)
+                    {
+                        <div class="border rounded p-3 bg-light">
+                            <h6>Rendered Output:</h6>
+                            <div class="font-monospace small">
+                                @Html.Raw(ViewBag.ConfigPreview)
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No custom configuration applied. Use the advanced configuration section above to customize your dashboard.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function resetAdvanced() {
+    document.getElementById('customConfig').value = '';
+    if (confirm('Reset advanced configuration to default? This will clear your custom template.')) {
+        document.querySelector('form').submit();
+    }
+}
+
+// Auto-resize textarea
+document.getElementById('customConfig').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+</script>
+}

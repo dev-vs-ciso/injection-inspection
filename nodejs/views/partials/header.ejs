@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= typeof title !== 'undefined' ? title : 'Dashboard - ' + BANK_NAME %></title>
+    <%- include('head') %>
+</head>
+<body>
+    <%- include('navbar') %>
+    <%- include('flash-messages') %>
+
+    <!-- Main Content -->
+    <main class="main-content">

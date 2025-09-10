@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error - <%= BANK_NAME %></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .navbar-brand { font-weight: 700; }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .main-content { flex: 1; }
+        .footer { margin-top: auto; padding: 20px 0; background-color: #f8f9fa; border-top: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-bank me-2"></i><%= BANK_NAME %>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <% if (messages && Object.keys(messages).length > 0) { %>
+        <div class="container mt-3">
+            <% Object.keys(messages).forEach(function(category) { %>
+                <% messages[category].forEach(function(message) { %>
+                    <div class="alert alert-<%= category === 'error' ? 'danger' : category %> alert-dismissible fade show" role="alert">
+                        <%- message %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% }); %>
+            <% }); %>
+        </div>
+    <% } %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h4 class="mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <% if (typeof error !== 'undefined' && error.status) { %>
+                                    Error <%= error.status %>
+                                <% } else { %>
+                                    Application Error
+                                <% } %>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <% if (typeof message !== 'undefined') { %>
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="bi bi-exclamation-circle me-2"></i>
+                                    <%= message %>
+                                </div>
+                            <% } %>
+                            
+                            <% if (typeof error !== 'undefined' && error.status === 404) { %>
+                                <h5>Page Not Found</h5>
+                                <p class="text-muted">
+                                    The page you are looking for might have been removed, 
+                                    had its name changed, or is temporarily unavailable.
+                                </p>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                                    <a href="/" class="btn btn-primary">
+                                        <i class="bi bi-house-door me-1"></i>Go Home
+                                    </a>
+                                    <% if (user) { %>
+                                        <a href="/dashboard" class="btn btn-outline-primary">
+                                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                                        </a>
+                                    <% } %>
+                                </div>
+                            <% } else { %>
+                                <h5>Something went wrong</h5>
+                                <p class="text-muted">
+                                    We're sorry, but something went wrong on our end. 
+                                    The issue has been logged and we'll look into it.
+                                </p>
+                                
+                                <% if (process.env.NODE_ENV === 'development' && typeof error !== 'undefined') { %>
+                                    <div class="alert alert-warning mt-3" role="alert">
+                                        <h6><i class="bi bi-bug me-1"></i>Development Details:</h6>
+                                        <pre class="mb-0 small"><%= error.stack %></pre>
+                                    </div>
+                                <% } %>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                                    <button onclick="history.back()" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Go Back
+                                    </button>
+                                    <a href="/" class="btn btn-primary">
+                                        <i class="bi bi-house-door me-1"></i>Home
+                                    </a>
+                                    <% if (user) { %>
+                                        <a href="/dashboard" class="btn btn-outline-primary">
+                                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                                        </a>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="card-footer text-muted">
+                            <small>
+                                <i class="bi bi-shield-exclamation me-1"></i>
+                                This is a security training environment. Errors may be intentional for learning purposes.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        &copy; 2024 <%= BANK_NAME %> Financial. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-shield-exclamation me-1"></i>Security Training Environment
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

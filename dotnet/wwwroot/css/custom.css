@@ -1,0 +1,47 @@
+/* Custom styles for Banking Security Training Application */
+
+.avatar-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-hover {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+}
+
+/* Security training specific styles */
+.vulnerability-highlight {
+    border: 2px dashed #ffc107;
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.training-notice {
+    background: linear-gradient(45deg, #ff6b6b, #ffa500);
+    color: white;
+}
+
+/* Login form enhancements */
+.login-card {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}

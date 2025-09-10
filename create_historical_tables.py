@@ -3,9 +3,9 @@ Create historical transaction tables for 2020-2021
 Reuses the Transaction model structure to create monthly tables
 """
 from sqlalchemy import MetaData, Table, Column, Integer, Numeric, String, DateTime, ForeignKey, Index
-from app import create_app
-from models import db, Transaction
 from datetime import datetime
+from python.app import create_app
+from python.models import db, Transaction
 
 def create_historical_transaction_table(table_name):
     """

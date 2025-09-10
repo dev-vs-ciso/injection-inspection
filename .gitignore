@@ -209,3 +209,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Node modules
+node_modules
+
+# Dot net core
+dotnet/bin/
+dotnet/obj/
