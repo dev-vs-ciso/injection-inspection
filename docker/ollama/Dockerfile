@@ -37,5 +37,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
 
 RUN sed -i 's/\r$//' /start.sh
 
-# Start the server
-CMD ["sh", "/start.sh"]
+# Set the entrypoint
+ENTRYPOINT ["/start.sh"]
