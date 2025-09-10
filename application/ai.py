@@ -36,7 +36,7 @@ def send_to_llm(prompt, max_tokens=500):
         }
         
         # Increase timeout for TinyLlama
-        response = requests.post(LLM_SERVICE_URL, json=payload, timeout=60)
+        response = requests.post(LLM_SERVICE_URL, json=payload, timeout=120)
         response.raise_for_status()
         
         result = response.json()
@@ -128,6 +128,7 @@ Provide helpful financial insights. Be concise and specific."""
                          user_query=user_query,
                          transaction_count=transaction_count)
 
+
 @active_user_required
 def ai_loan_advisor():
     """
@@ -165,7 +166,7 @@ def ai_loan_advisor():
         # Get recent transactions but keep it minimal
         recent_transactions = Transaction.query.filter_by(user_id=user.id)\
                                              .order_by(Transaction.date.desc())\
-                                             .limit(5).all()
+                                             .all()
         
         # Calculate basic metrics
         total_credits = sum(t.amount for t in recent_transactions if t.transaction_type == 'credit')
@@ -193,7 +194,7 @@ Term: {loan_term} months
 
 DECISION: Analyze and decide APPROVED/DENIED/CONDITIONAL
 RISK: LOW/MEDIUM/HIGH
-Explain briefly."""
+Explain in one sentence."""
         
         print(f"Loan prompt length: {len(loan_prompt)} characters")  # Debug log
         
