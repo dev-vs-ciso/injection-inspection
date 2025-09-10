@@ -59,7 +59,7 @@ def _standard_login_check(email, password):
     NOTE: This function exists but is NOT currently used by the login() function
     """
     user = User.query.filter_by(email=email).first()
-    
+
     if user and user.check_password(password):
         return user
     return None

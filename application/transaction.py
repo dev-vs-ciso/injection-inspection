@@ -570,15 +570,15 @@ def _call_archived_transactions_procedure(year, month):
             text(procedure_call),
             {'year': year, 'month': month, 'user_id': current_user.id}
         )
-        
+
         # Convert result rows to transaction-like objects
         transactions = []
-        
+
         for row in result:
             # Create a simple object to hold the transaction data
             # Assuming the stored procedure returns columns matching Transaction model
             transaction = type('ArchivedTransaction', (), {})()
-            
+
             # Map common transaction fields - adjust based on your stored procedure output
             transaction.id = getattr(row, 'id', None)
             transaction.date = getattr(row, 'date', None) 
@@ -590,16 +590,16 @@ def _call_archived_transactions_procedure(year, month):
             transaction.transaction_type = getattr(row, 'transaction_type', '')
             transaction.category = getattr(row, 'category', '')
             transaction.user_id = getattr(row, 'user_id', current_user.id)
-            
+
             # Add helper method for credit/debit checking
             def is_credit_method():
                 return getattr(transaction, 'transaction_type', '').lower() == 'credit'
             transaction.is_credit = is_credit_method
-            
+
             transactions.append(transaction)
-            
+
         return transactions
-        
+
     except Exception as e:
         print(f"Stored procedure call error: {e}")
         flash(f'Database error: {str(e)}', 'error')
