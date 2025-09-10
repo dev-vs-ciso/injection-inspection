@@ -237,8 +237,8 @@ def _advanced_search():
         # Convert results back to Transaction objects
         transactions = []
         for row in result:
-            # Find the actual transaction object
-            transaction = db.session.get(row[0])  # Assuming first column is ID
+            # Assuming your SELECT returns transaction columns in order
+            transaction = db.session.get(Transaction, row.id)  # Add model class
             if transaction:
                 transactions.append(transaction)
         
@@ -384,13 +384,6 @@ def export_transactions():
             else:
                 flash('Export command failed. See details below.', 'error')
 
-            # # Send file back to user
-            # return send_file(
-            #     export_path,
-            #     as_attachment=True,
-            #     download_name=f"{filename}.{export_format}",
-            #     mimetype='text/csv'
-            # )
 
         except Exception as e:
             flash(f'Export error: {str(e)}', 'error')
