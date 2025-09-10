@@ -34,5 +34,8 @@ EXPOSE 11434
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:11434/api/version || exit 1
 
-# Set the entrypoint
-ENTRYPOINT ["/start.sh"]
+
+RUN sed -i 's/\r$//' /start.sh
+
+# Start the server
+CMD ["sh", "/start.sh"]
