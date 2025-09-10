@@ -24,4 +24,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD nc -z localhost 8888 || exit 1
 
 # Start the evil servers
-CMD ["/app/start_servers.sh"]
+CMD ["sh", "/app/start_servers.sh"]
