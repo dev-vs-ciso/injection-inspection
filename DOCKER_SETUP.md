@@ -1,13 +1,17 @@
-# Docker Setup for Banking Security Training Application
+# Docker Setup for Banking Securit# Populate with sample data
+docker exec banking-app python populate_db.py
+```
 
-This guide helps you run the Banking Security Training Application using Docker with either PostgreSQL or SQL Server.
+## 📊 Database Comparisonon
+
+This guide helps you run the Banking Security Training Application using Docker with PostgreSQL.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - **Docker Desktop** installed and running
-- **8GB+ RAM** (especially for SQL Server)
-- **Ports available**: 5000 (app), 5432/1433 (database), 8080 (admin interface)
+- **8GB+ RAM**
+- **Ports available**: 5000 (app), 5432 (database), 8080 (admin interface)
 
 ### Option 1: Interactive Setup (Recommended)
 
@@ -36,31 +40,10 @@ docker-compose -f docker-compose.postgres.yml up -d
 docker exec banking-app python populate_db.py
 ```
 
-**SQL Server:**
-```bash
-# Copy environment configuration  
-cp .env.sqlserver .env
-
-# Start services
-docker-compose -f docker-compose.sqlserver.yml up -d
-
-# Wait for SQL Server to fully start (30-60 seconds)
-sleep 30
-
-# Populate with sample data
-docker exec banking-app python populate_db.py
-```
-
-## 📊 Database Options Comparison
-
-| Feature | PostgreSQL | SQL Server |
+## 📊 Database Configuration
 |---------|------------|------------|
 | **Startup Time** | ~10-15 seconds | ~30-60 seconds |
 | **Memory Usage** | ~200-400 MB | ~500-800 MB |
-| **Admin Interface** | pgAdmin (port 8080) | Adminer (port 8080) |
-| **Best For** | Development, Testing | Enterprise Simulation |
-| **Docker Image** | `postgres:15-alpine` | `mcr.microsoft.com/mssql/server:2022-latest` |
-
 ## 🔧 Configuration Files
 
 ### Environment Files
@@ -76,22 +59,9 @@ SECRET_KEY=your-super-secret-key
 DEBUG=True
 ```
 
-**`.env.sqlserver`** - SQL Server configuration  
-```bash
-DATABASE_TYPE=sqlserver
-DB_HOST=sqlserver
-DB_NAME=banking
-DB_USER=sa
-DB_PASS=SecurePassword123!
-SA_PASSWORD=SecurePassword123!
-SECRET_KEY=your-super-secret-key
-DEBUG=True
-```
-
 ### Docker Compose Files
 
 - **`docker-compose.postgres.yml`** - PostgreSQL stack with pgAdmin
-- **`docker-compose.sqlserver.yml`** - SQL Server stack with Adminer
 
 ## 🌐 Access Points
 
@@ -101,7 +71,6 @@ Once running, access these URLs:
 |---------|-----|-------------|
 | **Banking App** | http://localhost:5000 | See populate_db.py output |
 | **pgAdmin** (PostgreSQL) | http://localhost:8080 | admin@example.com / admin123 |
-| **Adminer** (SQL Server) | http://localhost:8080 | Server: sqlserver, User: sa, Password: SecurePassword123! |
 
 ## 🔑 Sample Login Credentials
 
@@ -134,9 +103,6 @@ docker-compose -f docker-compose.sqlserver.yml up -d
 ```bash
 # Stop PostgreSQL stack
 docker-compose -f docker-compose.postgres.yml down
-
-# Stop SQL Server stack
-docker-compose -f docker-compose.sqlserver.yml down
 ```
 
 ### Viewing Logs

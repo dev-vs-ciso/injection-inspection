@@ -1,6 +1,6 @@
 """
 Configuration settings for the Banking Application
-Supports SQLite3 (default), PostgreSQL, and SQL Server databases
+Supports SQLite3 (default) and PostgreSQL databases
 """
 import os
 from datetime import timedelta
@@ -34,46 +34,21 @@ class Config:
         DB_PASS = os.environ.get('DB_PASS', 'password')
         SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     
-    # SQL Server configuration
-    elif DATABASE_TYPE == 'sqlserver':
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_NAME = os.environ.get('DB_NAME', 'banking')
-        DB_USER = os.environ.get('DB_USER', 'sa')
-        DB_PASS = os.environ.get('DB_PASS', 'password')
-        SQLALCHEMY_DATABASE_URI = f'mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server'
 
-    # Azure SQL Edge specific configuration  
-    elif DATABASE_TYPE == 'azure-sql-edge':
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_NAME = os.environ.get('DB_NAME', 'banking')
-        DB_USER = os.environ.get('DB_USER', 'sa')
-        DB_PASS = os.environ.get('DB_PASS', 'password')
-        
-        # Azure SQL Edge optimized connection string with edge-specific parameters
-        SQLALCHEMY_DATABASE_URI = f'mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes&Encrypt=yes&Connection+Timeout=30&CommandTimeout=30'
     
     
     # SQLAlchemy settings
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False  # Set to True for SQL debugging
     
-    # Edge computing optimizations
+    # Database engine optimizations
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_timeout': 20,
-        'pool_recycle': 300,  # 5 minutes - good for edge scenarios
+        'pool_recycle': 300,  # 5 minutes
         'pool_pre_ping': True,  # Verify connections before use
-        'connect_args': {
-            'connect_timeout': 10,
-            'autocommit': True
-        } if DATABASE_TYPE in ['sqlserver', 'azure-sql-edge'] else {}
     }
     
 
     # Application settings
     BANK_NAME = "Kerata-Zemke"
     TRANSACTIONS_PER_PAGE = 20
-
-
-    # Edge-specific settings
-    EDGE_MODE = os.environ.get('EDGE_MODE', 'False').lower() == 'true'
-    EDGE_CACHE_TIMEOUT = int(os.environ.get('EDGE_CACHE_TIMEOUT', '300'))  # 5 minutes default

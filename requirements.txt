@@ -6,7 +6,6 @@ werkzeug
 
 # Database drivers
 psycopg2-binary
-pyodbc
 
 # Data generation and utilities
 faker

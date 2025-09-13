@@ -15,7 +15,7 @@ A Flask-based simulated banking application designed for security training purpo
 - **User Authentication**: Secure login system with password hashing
 - **Account Dashboard**: View account balance and recent transactions
 - **Transaction Management**: Detailed transaction views and search functionality
-- **Database Support**: Configurable database backend (SQLite, PostgreSQL, SQL Server)
+- **Database Support**: Configurable database backend (SQLite, PostgreSQL)
 - **Responsive Design**: Bootstrap 5 UI that works on desktop and mobile
 - **Sample Data**: Pre-populated with realistic users and transactions
 
@@ -71,15 +71,6 @@ export DATABASE_TYPE=postgresql
 export DB_HOST=localhost
 export DB_NAME=banking
 export DB_USER=postgres
-export DB_PASS=your_password
-```
-
-**SQL Server:**
-```bash
-export DATABASE_TYPE=sqlserver
-export DB_HOST=localhost
-export DB_NAME=banking
-export DB_USER=sa
 export DB_PASS=your_password
 ```
 
@@ -151,13 +142,6 @@ DB_HOST = 'localhost'
 DB_PORT = '5432'
 DB_NAME = 'banking'
 DB_USER = 'postgres'
-DB_PASS = 'password'
-
-# SQL Server
-DATABASE_TYPE = 'sqlserver'
-DB_HOST = 'localhost'
-DB_NAME = 'banking'
-DB_USER = 'sa'
 DB_PASS = 'password'
 ```
 

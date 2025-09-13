@@ -9,7 +9,7 @@ This is a **security training application** that simulates a banking platform wi
 
 ### Application Structure
 - **Flask app factory pattern** in `app.py` with modular route organization
-- **Multi-database support**: SQLite (dev), PostgreSQL, SQL Server via environment variables
+- **Multi-database support**: SQLite (dev), PostgreSQL via environment variables
 - **Modular routes**: Separate modules in `application/` directory (user, transaction, feedback, api, errors, home)
 - **Security decorators** in `decorators.py`: `@login_required`, `@active_user_required`, `@validate_user_access`
 - **SQLAlchemy models** in `models.py`: User, Transaction, Feedback with proper relationships
@@ -20,8 +20,6 @@ Database type determined by `DATABASE_TYPE` environment variable:
 # config.py - Multi-database pattern
 if DATABASE_TYPE == 'sqlite': # Local development
 elif DATABASE_TYPE == 'postgresql': # Docker/production
-elif DATABASE_TYPE == 'sqlserver': # Enterprise simulation
-elif DATABASE_TYPE == 'azure-sql-edge': # Edge computing scenarios
 ```
 
 ### Security Training Architecture
@@ -53,8 +51,7 @@ docker exec banking-app python populate_db.py
 
 ### Docker Multi-Environment Pattern
 - `docker-compose.postgres.yml` - PostgreSQL + pgAdmin
-- `docker-compose.sqlserver.yml` - SQL Server + Adminer  
-- Environment-specific `.env` files (`.env.postgres`, `.env.sqlserver`)
+- Environment-specific `.env` files (`.env.postgres`)
 - Automatic database initialization scripts in `docker/`
 
 ## Project-Specific Patterns
@@ -104,13 +101,13 @@ Users (1) -> (Many) Feedback
 ## Integration Points
 
 ### Multi-Database Abstraction
-SQLAlchemy handles differences between SQLite/PostgreSQL/SQL Server, but raw SQL injection examples are database-specific in advanced search.
+SQLAlchemy handles differences between SQLite/PostgreSQL, but raw SQL injection examples are database-specific in advanced search.
 
 ### Docker Service Dependencies
 ```yaml
 # Banking app depends on database readiness
 depends_on:
-  - postgres/sqlserver
+  - postgres
 # Admin interfaces (pgAdmin/Adminer) for database inspection
 ```
 

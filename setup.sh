@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Banking Security Training Application - Docker Setup Script
-# This script helps you run the application with either PostgreSQL or SQL Server
+# This script helps you run the application with PostgreSQL
 
 set -e  # Exit on error
 
@@ -191,15 +191,15 @@ show_status() {
 # Main menu function
 show_menu() {
     print_header "🏦 BANKING SECURITY TRAINING - DOCKER SETUP"
-    echo "Choose your database option:"
+    echo "Choose your setup option:"
     echo
     echo "1) 🐘 Start with PostgreSQL"
-    echo "3) 📊 Show status"
-    echo "4) 📝 Show logs"
-    echo "5) 🛑 Stop all services"
-    echo "6) 🧹 Cleanup (remove all data)"
-    echo "7) ❓ Help"
-    echo "8) 🚪 Exit"
+    echo "2) 📊 Show status"
+    echo "3) 📝 Show logs"
+    echo "4) 🛑 Stop all services"
+    echo "5) 🧹 Cleanup (remove all data)"
+    echo "6) ❓ Help"
+    echo "7) 🚪 Exit"
     echo
 }
 
@@ -218,9 +218,9 @@ show_help() {
     echo
     echo "🔧 Troubleshooting:"
     echo "   - Check Docker is running: docker info"
-    echo "   - View logs: ./setup.sh and choose option 4"
-    echo "   - Reset everything: ./setup.sh and choose option 6"
-    echo "   - Ports in use: 5000 (app), 5432/1433 (db), 8080 (admin)"
+    echo "   - View logs: ./setup.sh and choose option 3"
+    echo "   - Reset everything: ./setup.sh and choose option 5"
+    echo "   - Ports in use: 5000 (app), 5432 (db), 8080 (admin)"
     echo
     echo "🌐 Access Points:"
     echo "   - Banking App: http://localhost:5000"
@@ -238,35 +238,35 @@ main() {
     # Interactive menu
     while true; do
         show_menu
-        read -p "Enter your choice (1-8): " choice
+        read -p "Enter your choice (1-7): " choice
         
         case $choice in
             1)
                 start_postgres
                 ;;
-            3)
+            2)
                 show_status
                 ;;
-            4)
+            3)
                 echo "Which service logs? (banking-app, banking-postgres, evilcorp-server, banking-ollama or Enter for all):"
                 read -p "Service name: " service
                 show_logs "$service"
                 ;;
-            5)
+            4)
                 stop_services
                 ;;
-            6)
+            5)
                 cleanup
                 ;;
-            7)
+            6)
                 show_help
                 ;;
-            8)
+            7)
                 print_color $GREEN "👋 Goodbye!"
                 exit 0
                 ;;
             *)
-                print_color $RED "❌ Invalid option. Please choose 1-8."
+                print_color $RED "❌ Invalid option. Please choose 1-7."
                 ;;
         esac
         
