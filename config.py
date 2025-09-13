@@ -15,43 +15,12 @@ class Config:
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
     
-    # Database configuration
-    DATABASE_TYPE = os.environ.get('DATABASE_TYPE', 'sqlite').lower()
-    
-    # Default to SQLite3
-    if DATABASE_TYPE == 'sqlite':
-        # Use absolute path to put database in the same directory as the app
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        db_path = os.path.join(basedir, 'banking.db')
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{db_path}'
-    
-    # PostgreSQL configuration
-    elif DATABASE_TYPE == 'postgresql':
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_PORT = os.environ.get('DB_PORT', '5432')
-        DB_NAME = os.environ.get('DB_NAME', 'banking')
-        DB_USER = os.environ.get('DB_USER', 'postgres')
-        DB_PASS = os.environ.get('DB_PASS', 'password')
-        SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    
-    # SQL Server configuration
-    elif DATABASE_TYPE == 'sqlserver':
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_NAME = os.environ.get('DB_NAME', 'banking')
-        DB_USER = os.environ.get('DB_USER', 'sa')
-        DB_PASS = os.environ.get('DB_PASS', 'password')
-        SQLALCHEMY_DATABASE_URI = f'mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server'
-
-    # Azure SQL Edge specific configuration  
-    elif DATABASE_TYPE == 'azure-sql-edge':
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_NAME = os.environ.get('DB_NAME', 'banking')
-        DB_USER = os.environ.get('DB_USER', 'sa')
-        DB_PASS = os.environ.get('DB_PASS', 'password')
-        
-        # Azure SQL Edge optimized connection string with edge-specific parameters
-        SQLALCHEMY_DATABASE_URI = f'mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes&Encrypt=yes&Connection+Timeout=30&CommandTimeout=30'
-    
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '5432')
+    DB_NAME = os.environ.get('DB_NAME', 'banking')
+    DB_USER = os.environ.get('DB_USER', 'postgres')
+    DB_PASS = os.environ.get('DB_PASS', 'password')
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     
     # SQLAlchemy settings
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -62,17 +31,11 @@ class Config:
         'pool_timeout': 20,
         'pool_recycle': 300,  # 5 minutes - good for edge scenarios
         'pool_pre_ping': True,  # Verify connections before use
-        'connect_args': {
-            'connect_timeout': 10,
-            'autocommit': True
-        } if DATABASE_TYPE in ['sqlserver', 'azure-sql-edge'] else {}
     }
-    
 
     # Application settings
     BANK_NAME = "Kerata-Zemke"
     TRANSACTIONS_PER_PAGE = 20
-
 
     # Edge-specific settings
     EDGE_MODE = os.environ.get('EDGE_MODE', 'False').lower() == 'true'

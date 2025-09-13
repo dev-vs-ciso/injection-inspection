@@ -1,6 +1,6 @@
 @echo off
 :: Banking Security Training Application - Windows Docker Setup Script
-:: This script helps you run the application with either PostgreSQL
+:: This script helps you run the application with PostgreSQL
 
 setlocal enabledelayedexpansion
 

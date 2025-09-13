@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Banking Security Training Application - Docker Setup Script
-# This script helps you run the application with either PostgreSQL or SQL Server
+# This script helps you run the application with PostgreSQL
 
 set -e  # Exit on error
 
@@ -108,7 +108,6 @@ start_postgres() {
 stop_services() {
     print_header "🛑 STOPPING ALL SERVICES"
     
-    # Stop both possible stacks
     if [ -f "docker-compose.postgres.yml" ]; then
         print_color $BLUE "Stopping PostgreSQL stack..."
         $DOCKER_COMPOSE -f docker-compose.postgres.yml down
@@ -137,10 +136,6 @@ cleanup() {
         # Remove images that contain "banking" in the name (adjust pattern as needed)
         docker images --format "{{.Repository}}:{{.Tag}}" | grep -i banking-app | xargs -r docker rmi -f 2>/dev/null || true
         docker images --format "{{.Repository}}:{{.Tag}}" | grep -i evilcorp | xargs -r docker rmi -f 2>/dev/null || true
-
-        # Alternative: Remove specific image names if you know them
-        # docker rmi -f banking-app:latest 2>/dev/null || true
-        # docker rmi -f banking_banking-app:latest 2>/dev/null || true
 
         # Remove any orphaned containers
         docker container prune -f
@@ -206,11 +201,10 @@ show_menu() {
 # Help function
 show_help() {
     print_header "❓ HELP & TROUBLESHOOTING"
-    echo "🐘 PostgreSQL Option:"
+    echo "🐘 PostgreSQL:"
     echo "   - Uses PostgreSQL 15 Alpine image"
     echo "   - Includes pgAdmin web interface on port 8080"
-    echo "   - Lighter weight, faster startup"
-    echo "   - Good for development and testing"
+    echo "   - Optimized for development and testing"
     echo
     echo "📁 Important Files:"
     echo "   - .env.postgres: PostgreSQL configuration"
@@ -220,7 +214,7 @@ show_help() {
     echo "   - Check Docker is running: docker info"
     echo "   - View logs: ./setup.sh and choose option 4"
     echo "   - Reset everything: ./setup.sh and choose option 6"
-    echo "   - Ports in use: 5000 (app), 5432/1433 (db), 8080 (admin)"
+    echo "   - Ports in use: 5000 (app), 5432 (db), 8080 (admin)"
     echo
     echo "🌐 Access Points:"
     echo "   - Banking App: http://localhost:5000"
