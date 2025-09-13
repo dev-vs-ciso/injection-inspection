@@ -5,9 +5,18 @@ Initializes the Flask app with all necessary components
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from config import Config
-from models import db, init_database, User
+import sys
 import os
+
+# Add both the current directory and parent directory to Python path
+# This allows imports to work whether running from root or python/ directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, current_dir)  # For direct execution from python/
+sys.path.insert(0, parent_dir)   # For execution from root
+
+from config import Config
+from models import init_database, User
 from dotenv import load_dotenv
 
 from application.errors import register_error_handlers
@@ -33,10 +42,9 @@ def create_app(config_class=Config):
     else:
         app.config['SESSION_COOKIE_SECURE'] = True  # Local cookie is not over secure protocol, needed for Safari.
 
+    # Import and initialize the database
+    from models import db
     db.init_app(app)
-
-    # Initialize database
-    # db = SQLAlchemy(app)
 
     # Initialize Flask-Migrate
     migrate = Migrate(app, db)
@@ -120,8 +128,8 @@ if __name__ == '__main__':
     # are typically strings. This code converts the DEBUG variable to a boolean.
     # It checks if the DEBUG variable is set to "true", "1", or "t" (case-insensitive).
     # If no DEBUG variable is set, it defaults to "False".
-    if os.getenv("DB_HOST"):
-        debuglevel = False
-    else:
-        debuglevel = True
+    # if os.getenv("DB_HOST"):
+    #     debuglevel = False
+    # else:
+    debuglevel = True
     app.run(host='0.0.0.0', port=5000, debug=debuglevel)

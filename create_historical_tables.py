@@ -3,11 +3,10 @@ Create historical transaction tables for 2020-2021
 Reuses the Transaction model structure to create monthly tables
 """
 from sqlalchemy import MetaData, Table, Column, Integer, Numeric, String, DateTime, ForeignKey, Index
-from app import create_app
-from models import db, Transaction
+from python.app import create_app
 from datetime import datetime
 
-def create_historical_transaction_table(table_name):
+def create_historical_transaction_table(table_name, db, Transaction):
     """
     Create a historical transaction table with the same structure as Transaction model
     """
@@ -33,9 +32,25 @@ def create_historical_transaction_table(table_name):
     
     return historical_table
 
-def create_all_historical_tables():
+def create_all_historical_tables(db=None, Transaction=None):
     """
     Create historical transaction tables for 2020 and 2021 (24 tables total)
+    """
+    if db is None or Transaction is None:
+        # If called without parameters, set up db and Transaction locally
+        app = create_app()
+        with app.app_context():
+            from flask import current_app
+            from python.models import Transaction as TransactionModel
+            db = current_app.extensions['sqlalchemy']
+            Transaction = TransactionModel
+            return _create_all_historical_tables_impl(db, Transaction)
+    else:
+        return _create_all_historical_tables_impl(db, Transaction)
+
+def _create_all_historical_tables_impl(db, Transaction):
+    """
+    Implementation of create_all_historical_tables
     """
     print("Creating historical transaction tables...")
     
@@ -48,7 +63,7 @@ def create_all_historical_tables():
             print(f"  Creating table: {table_name}")
             
             try:
-                historical_table = create_historical_transaction_table(table_name)
+                historical_table = create_historical_transaction_table(table_name, db, Transaction)
                 tables_created.append(table_name)
             except Exception as e:
                 print(f"  ❌ Error creating {table_name}: {e}")
@@ -69,7 +84,7 @@ def get_historical_table_name(date):
     """
     return f"transactions_{date.year}{date.month:02d}"
 
-def insert_transaction_to_historical_table(transaction_data, table_name):
+def insert_transaction_to_historical_table(transaction_data, table_name, db):
     """
     Insert transaction data into a specific historical table using raw SQL
     """

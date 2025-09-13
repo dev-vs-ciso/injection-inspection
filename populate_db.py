@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
 from python.app import create_app
-from python.models import db, User, Transaction, Feedback
 
 # Initialize Faker for generating realistic sample data
 fake = Faker()
@@ -104,8 +103,9 @@ def check_existing_data():
     Check if database already contains user data
     Returns True if data exists, False if empty
     """
-    user_count = User.query.count()
-    transaction_count = Transaction.query.count()
+    # Use the global db instance that was properly initialized
+    user_count = db.session.query(User).count()
+    transaction_count = db.session.query(Transaction).count()
     
     print(f"Current database status:")
     print(f"  Users: {user_count}")
@@ -534,7 +534,7 @@ def create_realistic_feedback_distribution():
     print("\n4️⃣ Adding diverse feedback examples...")
     
     # Get some random users for additional feedback
-    users = User.query.limit(10).all()
+    users = db.session.query(User).limit(10).all()
     if not users:
         return []
     
@@ -709,10 +709,9 @@ def populate_database():
         print(f"   Average feedback per user: {(len(feedback_entries) + len(special_feedback)) / len(users):.1f}")
         
         # Show feedback distribution
-        feedback_stats = Feedback.get_score_distribution()
         print(f"\n📈 Feedback Score Distribution:")
         for score in range(5, 0, -1):
-            count = feedback_stats.get(score, 0)
+            count = db.session.query(Feedback).filter_by(score=score).count()
             print(f"   {score} stars: {count} reviews")
         
         # Return a random user for login testing, but never return the admin
@@ -745,14 +744,14 @@ def create_and_populate_historical_data():
         
         # Create historical tables
         print("Step 1: Creating historical tables...")
-        created_tables = create_all_historical_tables()
+        created_tables = create_all_historical_tables(db, Transaction)
         
         if created_tables:
             print("Step 2: Populating historical tables...")
-            populate_all_historical_tables()
+            populate_all_historical_tables(db, User)
             print("✅ Historical data creation complete!")
             # Create archived transactions function
-            create_archived_transactions_function()
+            create_archived_transactions_function(db)
             print("✅ Archived transactions function created!")
         else:
             print("❌ Failed to create historical tables")
@@ -792,6 +791,24 @@ def main():
     app = create_app()
     
     with app.app_context():
+        # Import the models module to get the class definitions
+        from python import models
+        
+        # Get the SQLAlchemy instance that was initialized with the app
+        from flask import current_app
+        db = current_app.extensions['sqlalchemy']
+        
+        # Get the model classes
+        User = models.User
+        Transaction = models.Transaction  
+        Feedback = models.Feedback
+        
+        # Make models and db available globally for other functions
+        globals()['db'] = db
+        globals()['User'] = User
+        globals()['Transaction'] = Transaction
+        globals()['Feedback'] = Feedback
+        
         # Create database tables if they don't exist
         try:
             print("🗑️ Dropping all existing tables...")
@@ -804,14 +821,6 @@ def main():
         except Exception as e:
             print(f"❌ Error recreating database tables: {e}")
             return
-        # try:
-        #     db.create_all()
-        #     print("✅ Database tables verified/created")
-        # except Exception as e:
-        #     print(f"❌ Error creating database tables: {e}")
-        #     return
-
-
 
         # Populate database
         user_info = populate_database()
