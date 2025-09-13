@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
 from sqlalchemy import text
-from app import create_app
-from models import db, User
+from python.app import create_app
+from python.models import db, User
 from populate_db import (
     SAMPLE_COMPANIES, 
     TRANSACTION_CATEGORIES,

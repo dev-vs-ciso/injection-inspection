@@ -8,7 +8,7 @@ This is a **security training application** that simulates a banking platform wi
 ## Architecture & Key Components
 
 ### Application Structure
-- **Flask app factory pattern** in `app.py` with modular route organization
+- **Flask app factory pattern** in `python/app.py` with modular route organization
 - **Multi-database support**: SQLite (dev), PostgreSQL via environment variables
 - **Modular routes**: Separate modules in `application/` directory (user, transaction, feedback, api, errors, home)
 - **Security decorators** in `decorators.py`: `@login_required`, `@active_user_required`, `@validate_user_access`
@@ -34,7 +34,7 @@ elif DATABASE_TYPE == 'postgresql': # Docker/production
 ```bash
 # Local SQLite development
 python populate_db.py  # Creates sample data with 30-40 users, 70-100 transactions each
-python app.py          # Starts on localhost:5000, auto-debug for local
+python python/app.py          # Starts on localhost:5000, auto-debug for local
 
 # Docker multi-database
 ./setup.sh             # Interactive setup script
@@ -141,10 +141,10 @@ docker-compose down -v && docker-compose up -d  # Docker reset
 ```
 
 ## File Priorities for Understanding
-1. `app.py` - Application factory and route registration
-2. `application/transaction.py` - Injection vulnerability examples
-3. `models.py` - Database relationships and business logic
-4. `decorators.py` - Security patterns
+1. `python/app.py` - Application factory and route registration
+2. `python/application/transaction.py` - Injection vulnerability examples
+3. `python/models.py` - Database relationships and business logic
+4. `python/decorators.py` - Security patterns
 5. `populate_db.py` - Data generation and testing setup
 6. `config.py` - Multi-environment configuration
 

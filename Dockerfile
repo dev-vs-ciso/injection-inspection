@@ -24,7 +24,7 @@ COPY . .
 # USER bankapp
 
 # Set environment variables
-ENV FLASK_APP=app.py
+ENV FLASK_APP=python/app.py
 ENV PYTHONPATH=/app
 
 # Expose port
@@ -35,4 +35,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/ || exit 1
 
 # Default command
-CMD ["python", "app.py"]
+CMD ["python", "python/app.py"]

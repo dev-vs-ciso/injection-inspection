@@ -23,11 +23,13 @@ A Flask-based simulated banking application designed for security training purpo
 
 ```
 banking_app/
-├── app.py                 # Main Flask application
-├── models.py             # Database models (User, Transaction)
-├── urls.py                # URL routes and view functions
-├── decorators.py         # Custom decorators for security
-├── config.py             # Configuration settings
+├── python/                # Python application code
+│   ├── app.py             # Main Flask application
+│   ├── config.py          # Configuration settings
+│   ├── models.py          # Database models (User, Transaction)
+│   ├── decorators.py      # Custom decorators for security
+│   ├── application/       # Route modules
+│   └── templates/         # HTML templates
 ├── populate_db.py        # Database population tool
 ├── requirements.txt      # Python dependencies
 ├── README.md            # This file
@@ -102,7 +104,7 @@ Account:  123456789012
 ### 5. Start the Application
 
 ```bash
-python app.py
+python python/app.py
 ```
 
 The application will start at: `http://127.0.0.1:5000`
@@ -214,7 +216,7 @@ This application may contain intentional security vulnerabilities for educationa
 
 ```bash
 export FLASK_DEBUG=1
-python app.py
+python python/app.py
 ```
 
 ### Resetting the Database
