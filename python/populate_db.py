@@ -10,7 +10,7 @@ import string
 from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
-from python.app import create_app
+from app import create_app
 
 # Initialize Faker for generating realistic sample data
 fake = Faker()

@@ -90,7 +90,7 @@ docker exec banking-app flask db upgrade
 
 echo 📊 Populating database with sample data...
 timeout /t 5 /nobreak >nul
-docker exec banking-app python populate_db.py
+docker exec banking-app python python/populate_db.py
 
 echo.
 echo ============================================================

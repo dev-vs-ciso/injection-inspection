@@ -12,6 +12,11 @@ import os
 import json
 import yaml
 from jinja2 import Template
+from decimal import Decimal, InvalidOperation
+import logging
+import re
+from pathlib import Path
+
 
 @active_user_required
 def transaction_detail(transaction_id):
@@ -105,6 +110,7 @@ def search():
         else:
             # VULNERABLE: Advanced search using raw SQL
             transactions = _advanced_search()
+            # transactions = _advanced_search_secure()
     
     return render_template('search.html', 
                          transactions=transactions, 
@@ -241,7 +247,7 @@ def _advanced_search():
             transaction = db.session.get(Transaction, row.id)  # Add model class
             if transaction:
                 transactions.append(transaction)
-        
+
         if not transactions:
             flash('No transactions found matching your advanced search criteria.', 'info')
         else:
@@ -257,6 +263,176 @@ def _advanced_search():
         return []
 
 
+def _advanced_search_secure():
+    """
+    SECURE: Advanced search using parameterized queries and proper input validation
+    """
+    # Get and validate advanced search parameters
+    company = request.form.get('adv_company', '').strip()
+    amount_min = request.form.get('amount_min', '').strip()
+    amount_max = request.form.get('amount_max', '').strip()
+    transaction_type = request.form.get('transaction_type', '').strip()
+    category = request.form.get('category', '').strip()
+    date_from = request.form.get('adv_date_from', '').strip()
+    date_to = request.form.get('adv_date_to', '').strip()
+    sort_by = request.form.get('sort_by', 'date').strip()
+    sort_order = request.form.get('sort_order', 'DESC').strip()
+    limit = request.form.get('limit', '100').strip()
+    
+    try:
+        # Use ORM query builder instead of raw SQL
+        query = Transaction.query.filter_by(user_id=current_user.id)
+        
+        # Join with users table for first_name, last_name
+        query = query.join(User)
+        
+        # Input validation and parameterized filtering
+        
+        # Company name filtering with ILIKE for case-insensitive search
+        if company:
+            # Length validation to prevent excessive wildcards
+            if len(company) > 100:
+                flash('Company name search term too long.', 'error')
+                return []
+            
+            ## better version - uses parametrized ORM query. 
+            ## It automatically parameterizes this as: WHERE company ILIKE $1 with parameter '%userinput%'
+            ## The database driver properly escapes the parameter value
+            ## User input becomes part of a LIKE pattern, not executable SQL
+            ## Special SQL characters like ', ;, -- are treated as literal text in the pattern
+            query = query.filter(Transaction.company.ilike(f'%{company}%'))
+
+            ## best version - forcibly escapes the % and _ characters, just in case
+            ## this prevents "like injections" `test%' OR '1'='1"` and DoS through wildcard queries: `company = "%" * 1000`` 
+            # escaped_company = company.replace('%', '\\%').replace('_', '\\_')
+            # search_pattern = f'%{escaped_company}%'
+            # query = query.filter(Transaction.company.ilike(search_pattern, escape='\\'))
+        
+        # Amount range filtering with proper type conversion and validation
+        if amount_min:
+            try:
+                amount_min_decimal = Decimal(amount_min)
+                if amount_min_decimal < 0:
+                    flash('Minimum amount must be non-negative.', 'error')
+                    return []
+                query = query.filter(Transaction.amount >= amount_min_decimal)
+            except (ValueError, InvalidOperation):
+                flash('Invalid minimum amount format. Please use numeric values only.', 'error')
+                return []
+        
+        if amount_max:
+            try:
+                amount_max_decimal = Decimal(amount_max)
+                if amount_max_decimal < 0:
+                    flash('Maximum amount must be non-negative.', 'error')
+                    return []
+                # Reasonable upper limit to prevent abuse
+                if amount_max_decimal > Decimal('1000000'):
+                    flash('Maximum amount too large.', 'error')
+                    return []
+                query = query.filter(Transaction.amount <= amount_max_decimal)
+            except (ValueError, InvalidOperation):
+                flash('Invalid maximum amount format. Please use numeric values only.', 'error')
+                return []
+        
+        # Transaction type filtering with whitelist validation
+        if transaction_type and transaction_type.lower() != 'all':
+            # SECURITY FIX 3: Whitelist validation instead of direct insertion
+            valid_types = ['credit', 'debit']
+            if transaction_type.lower() not in valid_types:
+                flash('Invalid transaction type.', 'error')
+                return []
+            query = query.filter(Transaction.transaction_type == transaction_type.lower())
+        
+        # Category filtering with length validation
+        if category:
+            if len(category) > 50:
+                flash('Category search term too long.', 'error')
+                return []
+            query = query.filter(Transaction.category.ilike(f'%{category}%'))
+        
+        # Date filtering with proper validation and type conversion
+        if date_from:
+            try:
+                # SECURITY FIX 4: Proper date parsing instead of string insertion
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                # Reasonable date range validation
+                if date_from_obj.year < 1970 or date_from_obj.year > 2039:
+                    flash('Date from is outside valid range.', 'error')
+                    return []
+                query = query.filter(Transaction.date >= date_from_obj)
+            except ValueError:
+                flash('Invalid start date format. Please use YYYY-MM-DD.', 'error')
+                return []
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                # Add full day
+                date_to_obj = date_to_obj + timedelta(days=1)
+                if date_to_obj.year < 1970 or date_to_obj.year > 2039:
+                    flash('Date to is outside valid range.', 'error')
+                    return []
+                query = query.filter(Transaction.date < date_to_obj)
+            except ValueError:
+                flash('Invalid end date format. Please use YYYY-MM-DD.', 'error')
+                return []
+        
+        # Whitelist validation for ORDER BY to prevent injection
+        valid_sort_columns = {
+            'date': Transaction.date,
+            'amount': Transaction.amount,
+            'company': Transaction.company,
+            'balance_after': Transaction.balance_after,
+            'transaction_type': Transaction.transaction_type
+        }
+        
+        if sort_by not in valid_sort_columns:
+            flash('Invalid sort column.', 'error')
+            return []
+        
+        # Whitelist validation for sort order
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            flash('Invalid sort order.', 'error')
+            return []
+        
+        # Apply sorting using SQLAlchemy methods
+        sort_column = valid_sort_columns[sort_by]
+        if sort_order.upper() == 'DESC':
+            query = query.order_by(sort_column.desc())
+        else:
+            query = query.order_by(sort_column.asc())
+        
+        # Validate and limit results with reasonable bounds
+        try:
+            limit_int = int(limit)
+            if limit_int <= 0 or limit_int > 1000:  # Reasonable upper limit
+                flash('Limit must be between 1 and 1000.', 'error')
+                return []
+            query = query.limit(limit_int)
+        except ValueError:
+            flash('Invalid limit value. Please use a number.', 'error')
+            return []
+        
+        # Execute the secure query
+        transactions = query.all()
+        
+        # SECURITY FIX 8: Safe logging without exposing sensitive data
+        logging.info(f"Advanced search completed for user {current_user.id} - found {len(transactions)} results")
+        
+        if not transactions:
+            flash('No transactions found matching your advanced search criteria.', 'info')
+        else:
+            flash(f'Advanced search found {len(transactions)} transaction(s).', 'success')
+        
+        return transactions
+        
+    except Exception as e:
+        # SECURITY FIX 9: Generic error handling without exposing system details
+        logging.error(f"Advanced search error for user {current_user.id}: {str(e)}")
+        flash('An error occurred while processing your search. Please try again.', 'error')
+        return []
+    
 
 def transaction_analytics():
     """
@@ -418,56 +594,115 @@ def download_export_file():
         return redirect(url_for('export_transactions'))
     
 
+@active_user_required  
+def export_transactions_secure():
+    """
+    SECURE: Export transactions - fixes command injection vulnerability
+    """
+    export_results = None
 
-# @active_user_required
-# def import_transactions():
-#     """
-#     VULNERABLE: Import transactions from file with deserialization vulnerability
-#     Accepts pickled data files for "advanced transaction imports"
-#     """
-#     if request.method == 'POST':
-#         if 'import_file' not in request.files:
-#             flash('No file selected for import.', 'error')
-#             return redirect(url_for('import_transactions'))
+    if request.method == 'POST':
+        filename = request.form.get('filename', 'transactions').strip()
+        date_range = request.form.get('date_range', '30').strip()
+        export_format = 'csv'
         
-#         file = request.files['import_file']
-#         import_format = request.form.get('import_format', 'standard')
-        
-#         if file.filename == '':
-#             flash('No file selected.', 'error')
-#             return redirect(url_for('import_transactions'))
-        
-#         try:
-#             # VULNERABILITY: Direct deserialization of user-uploaded files
-#             if import_format == 'advanced':
-#                 # "Advanced format supports complex transaction metadata"
-#                 print(f"DEBUG: Processing advanced format import from {file.filename}")
+        try:
+            # SECURITY FIX 1: Validate filename - only allow safe characters
+            if not re.match(r'^[a-zA-Z0-9_-]+$', filename):
+                flash('Invalid filename. Only letters, numbers, hyphens, and underscores allowed.', 'error')
+                return render_template('export.html', export_results={'success': False})
+            
+            if len(filename) > 50:
+                flash('Filename too long (max 50 characters).', 'error')
+                return render_template('export.html', export_results={'success': False})
+            
+            # SECURITY FIX 2: Validate date range
+            if not date_range.isdigit():
+                days = 30
+            else:
+                days = int(date_range)
+                if days < 1 or days > 365:
+                    days = 30
+            
+            # Get user's transactions
+            cutoff_date = datetime.now() - timedelta(days=days)
+            transactions = Transaction.query.filter(
+                Transaction.user_id == current_user.id,
+                Transaction.date >= cutoff_date
+            ).order_by(Transaction.date.desc()).all()
+
+            # SECURITY FIX 3: Use Python file operations instead of shell commands
+            export_dir = Path("/tmp/exports")
+            export_path = export_dir / f"{filename}.{export_format}"
+            
+            # Create directory safely without shell
+            export_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Generate CSV content
+            with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Date', 'Company', 'Type', 'Amount', 'Balance', 'Reference'])
                 
-#                 # Read and deserialize the file content
-#                 file_content = file.read()
-                
-#                 # VULNERABLE: Direct pickle deserialization
-#                 imported_data = pickle.loads(file_content)
-                
-#                 flash(f'Advanced import processed: {len(imported_data.get("transactions", []))} transactions found', 'success')
-                
-#             elif import_format == 'backup':
-#                 # "Restore from backup format" 
-#                 file_content = file.read()
-                
-#                 # VULNERABLE: Another deserialization point
-#                 backup_data = pickle.loads(file_content)
-                
-#                 flash(f'Backup restored successfully: {backup_data.get("message", "No message")}', 'success')
-                
-#             else:
-#                 # Safe CSV import (not vulnerable)
-#                 flash('Standard CSV import completed (simulated)', 'info')
-                
-#         except Exception as e:
-#             flash(f'Import failed: {str(e)}', 'error')
+                for txn in transactions:
+                    writer.writerow([
+                        txn.date.strftime('%Y-%m-%d %H:%M:%S'),
+                        txn.company,
+                        txn.transaction_type,
+                        txn.amount,
+                        txn.balance_after,
+                        txn.reference_number
+                    ])
+            
+            # Prepare results
+            export_results = {
+                'success': True,
+                'filename': f"{filename}.{export_format}",
+                'transaction_count': len(transactions),
+                'file_exists': export_path.exists()
+            }
+            
+            flash(f'Export generated successfully! {len(transactions)} transactions exported.', 'success')
+
+        except Exception as e:
+            flash('Export generation failed. Please try again.', 'error')
+            export_results = {'success': False, 'error': 'Export failed'}
     
-#     return render_template('import.html')
+    return render_template('export.html', export_results=export_results)
+
+
+@active_user_required
+def download_export_file_secure():
+    """
+    SECURE: Download export file with path validation
+    """
+    filename = request.args.get('filename', '')
+    
+    try:
+        # SECURITY FIX 1: Basic filename validation
+        if not filename or not re.match(r'^[a-zA-Z0-9_-]+\.csv$', filename):
+            flash('Invalid filename.', 'error')
+            return redirect(url_for('export_transactions'))
+        
+        # SECURITY FIX 2: Safe path construction
+        export_dir = Path("/tmp/exports")
+        file_path = export_dir / filename
+        
+        # Ensure file exists
+        if not file_path.exists():
+            flash('Export file not found. Please generate a new export.', 'error')
+            return redirect(url_for('export_transactions'))
+        
+        # Send file
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+        
+    except Exception as e:
+        flash('Download failed. Please try again.', 'error')
+        return redirect(url_for('export_transactions'))
 
 @active_user_required
 def import_transactions():
