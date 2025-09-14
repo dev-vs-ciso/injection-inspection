@@ -792,7 +792,7 @@ def main():
     
     with app.app_context():
         # Import the models module to get the class definitions
-        from python import models
+        import models
         
         # Get the SQLAlchemy instance that was initialized with the app
         from flask import current_app

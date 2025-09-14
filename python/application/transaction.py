@@ -607,7 +607,7 @@ def export_transactions_secure():
         export_format = 'csv'
         
         try:
-            # SECURITY FIX 1: Validate filename - only allow safe characters
+            # Validate filename - only allow safe characters
             if not re.match(r'^[a-zA-Z0-9_-]+$', filename):
                 flash('Invalid filename. Only letters, numbers, hyphens, and underscores allowed.', 'error')
                 return render_template('export.html', export_results={'success': False})
@@ -616,7 +616,7 @@ def export_transactions_secure():
                 flash('Filename too long (max 50 characters).', 'error')
                 return render_template('export.html', export_results={'success': False})
             
-            # SECURITY FIX 2: Validate date range
+            # Validate date range
             if not date_range.isdigit():
                 days = 30
             else:
@@ -631,7 +631,7 @@ def export_transactions_secure():
                 Transaction.date >= cutoff_date
             ).order_by(Transaction.date.desc()).all()
 
-            # SECURITY FIX 3: Use Python file operations instead of shell commands
+            # Use Python file operations instead of shell commands
             export_dir = Path("/tmp/exports")
             export_path = export_dir / f"{filename}.{export_format}"
             

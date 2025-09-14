@@ -25,7 +25,7 @@ COPY . .
 
 # Set environment variables
 ENV FLASK_APP=python/app.py
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/python
 
 # Expose port
 EXPOSE 5000
