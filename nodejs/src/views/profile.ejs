@@ -1,0 +1,36 @@
+<h2>Profile</h2>
+
+<div style="margin-bottom: 20px;">
+    <h3>Account Information</h3>
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;">
+        <p><strong>Name:</strong> <%= user.firstName %> <%= user.lastName %></p>
+        <p><strong>Email:</strong> <%= user.email %></p>
+        <p><strong>Account Number:</strong> <%= user.accountNumber %></p>
+        <p><strong>Role:</strong> <%= user.role %></p>
+        <p><strong>Current Balance:</strong> <%= currency(user.balance) %></p>
+        <p><strong>Account Created:</strong> <%= datetime(user.createdAt) %></p>
+        <p><strong>Status:</strong> <%= user.isActive ? 'Active' : 'Inactive' %></p>
+    </div>
+</div>
+
+<% if (profileStats) { %>
+    <div style="margin: 20px 0;">
+        <h3>Account Statistics</h3>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;">
+            <p><strong>Total Transactions:</strong> <%= profileStats.transactionCount.toLocaleString() %></p>
+            <p><strong>Account Age:</strong> <%= profileStats.accountAge %> days</p>
+            <% if (profileStats.firstTransactionDate) { %>
+                <p><strong>First Transaction:</strong> <%= datetime(profileStats.firstTransactionDate) %></p>
+            <% } %>
+            <% if (profileStats.lastTransactionDate) { %>
+                <p><strong>Last Transaction:</strong> <%= datetime(profileStats.lastTransactionDate) %></p>
+            <% } %>
+        </div>
+    </div>
+<% } %>
+
+<div style="margin: 30px 0;">
+    <h3>Account Actions</h3>
+    <a href="/preferences" class="btn">Edit Preferences</a>
+    <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>

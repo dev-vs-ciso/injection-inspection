@@ -1,0 +1,18 @@
+<h2>Error</h2>
+
+<div class="alert alert-error">
+    <h3><%= title %></h3>
+    <p><%= message %></p>
+    
+    <% if (typeof stack !== 'undefined' && stack) { %>
+        <details style="margin-top: 15px;">
+            <summary>Technical Details</summary>
+            <pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0; overflow-x: auto;"><%= stack %></pre>
+        </details>
+    <% } %>
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="/dashboard" class="btn">Go to Dashboard</a>
+    <a href="/" class="btn btn-secondary">Go Home</a>
+</div>
