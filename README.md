@@ -15,7 +15,7 @@ A Flask-based simulated banking application designed for security training purpo
 - **User Authentication**: Secure login system with password hashing
 - **Account Dashboard**: View account balance and recent transactions
 - **Transaction Management**: Detailed transaction views and search functionality
-- **Database Support**: Configurable database backend (SQLite, PostgreSQL, SQL Server)
+- **Database Support**: Configurable database backend (SQLite, PostgreSQL)
 - **Responsive Design**: Bootstrap 5 UI that works on desktop and mobile
 - **Sample Data**: Pre-populated with realistic users and transactions
 
@@ -23,11 +23,13 @@ A Flask-based simulated banking application designed for security training purpo
 
 ```
 banking_app/
-├── app.py                 # Main Flask application
-├── models.py             # Database models (User, Transaction)
-├── urls.py                # URL routes and view functions
-├── decorators.py         # Custom decorators for security
-├── config.py             # Configuration settings
+├── python/                # Python application code
+│   ├── app.py             # Main Flask application
+│   ├── config.py          # Configuration settings
+│   ├── models.py          # Database models (User, Transaction)
+│   ├── decorators.py      # Custom decorators for security
+│   ├── application/       # Route modules
+│   └── templates/         # HTML templates
 ├── populate_db.py        # Database population tool
 ├── requirements.txt      # Python dependencies
 ├── README.md            # This file
@@ -74,15 +76,6 @@ export DB_USER=postgres
 export DB_PASS=your_password
 ```
 
-**SQL Server:**
-```bash
-export DATABASE_TYPE=sqlserver
-export DB_HOST=localhost
-export DB_NAME=banking
-export DB_USER=sa
-export DB_PASS=your_password
-```
-
 ### 4. Populate the Database
 
 Run the population tool to create sample users and transactions:
@@ -111,7 +104,7 @@ Account:  123456789012
 ### 5. Start the Application
 
 ```bash
-python app.py
+python python/app.py
 ```
 
 The application will start at: `http://127.0.0.1:5000`
@@ -151,13 +144,6 @@ DB_HOST = 'localhost'
 DB_PORT = '5432'
 DB_NAME = 'banking'
 DB_USER = 'postgres'
-DB_PASS = 'password'
-
-# SQL Server
-DATABASE_TYPE = 'sqlserver'
-DB_HOST = 'localhost'
-DB_NAME = 'banking'
-DB_USER = 'sa'
 DB_PASS = 'password'
 ```
 
@@ -230,7 +216,7 @@ This application may contain intentional security vulnerabilities for educationa
 
 ```bash
 export FLASK_DEBUG=1
-python app.py
+python python/app.py
 ```
 
 ### Resetting the Database

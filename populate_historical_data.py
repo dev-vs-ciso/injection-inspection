@@ -9,8 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
 from sqlalchemy import text
-from app import create_app
-from models import db, User
+from python.app import create_app
 from populate_db import (
     SAMPLE_COMPANIES, 
     TRANSACTION_CATEGORIES,
@@ -117,7 +116,7 @@ def create_historical_transaction_data(user, year, month, transaction_count=None
     
     return transactions
 
-def populate_historical_table(year, month, users):
+def populate_historical_table(year, month, users, db):
     """
     Populate a specific historical table with transaction data
     """
@@ -159,16 +158,32 @@ def populate_historical_table(year, month, users):
         print(f"    ❌ Error populating {table_name}: {e}")
         return 0
 
-def populate_all_historical_tables():
+def populate_all_historical_tables(db=None, User=None):
     """
     Populate all historical tables with transaction data
+    """
+    if db is None or User is None:
+        # If called without parameters, set up db and User locally
+        app = create_app()
+        with app.app_context():
+            from flask import current_app
+            from python.models import User as UserModel
+            db = current_app.extensions['sqlalchemy']
+            User = UserModel
+            return _populate_all_historical_tables_impl(db, User)
+    else:
+        return _populate_all_historical_tables_impl(db, User)
+
+def _populate_all_historical_tables_impl(db, User):
+    """
+    Implementation of populate_all_historical_tables
     """
     print("=" * 60)
     print("Populating Historical Transaction Tables")
     print("=" * 60)
     
     # Get all users
-    users = User.query.all()
+    users = db.session.query(User).all()
     if not users:
         print("❌ No users found. Run populate_db.py first!")
         return
@@ -185,14 +200,14 @@ def populate_all_historical_tables():
             month_name = datetime(year, month, 1).strftime("%B")
             print(f"  📅 {month_name} {year}")
             
-            transaction_count = populate_historical_table(year, month, users)
+            transaction_count = populate_historical_table(year, month, users, db)
             total_transactions += transaction_count
     
     print(f"\n✅ Historical data population complete!")
     print(f"   Total historical transactions created: {total_transactions:,}")
     print("=" * 60)
 
-def check_historical_tables_exist():
+def check_historical_tables_exist(db):
     """
     Check if historical tables exist in the database
     """
@@ -208,9 +223,23 @@ def check_historical_tables_exist():
         except Exception:
             return False
 
-def create_archived_transactions_function():
+def create_archived_transactions_function(db=None):
     """
     Create the PostgreSQL get_archived_transactions function
+    """
+    if db is None:
+        # If called without parameters, set up db locally
+        app = create_app()
+        with app.app_context():
+            from flask import current_app
+            db = current_app.extensions['sqlalchemy']
+            return _create_archived_transactions_function_impl(db)
+    else:
+        return _create_archived_transactions_function_impl(db)
+
+def _create_archived_transactions_function_impl(db):
+    """
+    Implementation of create_archived_transactions_function
     """
     print("\n📝 Creating get_archived_transactions PostgreSQL function...")
     
@@ -262,24 +291,29 @@ def main():
     app = create_app()
     
     with app.app_context():
+        # Get the properly initialized db instance and models
+        from flask import current_app
+        from python.models import User
+        db = current_app.extensions['sqlalchemy']
+        
         # Check if historical tables exist
-        if not check_historical_tables_exist():
+        if not check_historical_tables_exist(db):
             print("❌ Historical tables not found!")
             print("   Run: python create_historical_tables.py first")
             return
         
         # Check if main tables have data
-        user_count = User.query.count()
+        user_count = db.session.query(User).count()
         if user_count == 0:
             print("❌ No users found in database!")
             print("   Run: python populate_db.py first")
             return
         
         # Create the PostgreSQL function for archived transactions
-        create_archived_transactions_function()
+        create_archived_transactions_function(db)
         
         # Populate historical data
-        populate_all_historical_tables()
+        populate_all_historical_tables(db, User)
 
 if __name__ == '__main__':
     main()

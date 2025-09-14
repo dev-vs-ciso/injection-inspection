@@ -20,7 +20,9 @@ def index():
             "total_users": 0,
             "total_transactions": 0,
             "total_volume": 0,
-            "monthly_volume": 0
+            "monthly_volume": 0,
+            "total_feedback": 0,
+            "average_score": 0.0
         }
     
     return render_template('index.html', stats=stats)

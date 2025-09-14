@@ -62,7 +62,6 @@ docker-compose*.yml
 # Environment files (these contain secrets)
 .env*
 !.env.postgres
-!.env.sqlserver
 
 # Build and dist directories
 build/
