@@ -6,6 +6,8 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import current_user
 from models import db, Feedback, User
 from decorators import active_user_required
+import html
+import re
 
 
 def feedback_list():
@@ -83,13 +85,19 @@ def submit_feedback():
         
         # VULNERABILITY: Store user input directly without sanitization
         # This allows XSS attacks through the message field
+
+        # """SECURE - Blocking XSS before saving"""
+        # uncomment the three rows below to filter the XSS on input
+        # message = re.sub(r'<[^>]+>', '', message)  # Strip HTML tags
+        # message = html.escape(message)  # Escape remaining special characters
+        # message = message[:500]  # Limit length
+
         feedback = Feedback(
             user_id=current_user.id,
             score=score,
             message=message,  # VULNERABLE: No HTML escaping or sanitization
             is_anonymous=is_anonymous
         )
-        
         try:
             db.session.add(feedback)
             db.session.commit()

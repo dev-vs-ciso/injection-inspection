@@ -95,6 +95,10 @@
                             <!-- VULNERABILITY: Direct rendering of user content without escaping -->
                             <div class="feedback-content border-start border-primary border-3 ps-3">
                                 {{ feedback.message|safe }}
+                                <!-- Automatic escaping (default in Jinja2) -->
+                                <!-- {{ feedback.message }} -->
+                                <!-- OR explicitly escape -->
+                                <!-- {{ feedback.message|e }} -->
                             </div>
                         </div>
                     </div>

@@ -16,6 +16,7 @@ from decimal import Decimal, InvalidOperation
 import logging
 import re
 from pathlib import Path
+import html
 
 
 @active_user_required
@@ -71,6 +72,7 @@ def transaction_detail(transaction_id):
         try:
             # VULNERABILITY: Direct template rendering of user input
             # This allows template injection attacks
+            # comment the 7 rows below to secure the code.
             template = Template(transaction.note)
             rendered_note = template.render(
                 current_user=current_user,
@@ -78,6 +80,12 @@ def transaction_detail(transaction_id):
                 config=current_app.config,
                 request=request
             )
+            # END VULNERABILITY 
+
+            # Secure version for template injection (uncomment two rows below for secure version)
+            # escaped_note = html.escape(transaction.note)
+            # rendered_note = escaped_note.replace('\n', '<br>')
+            # END secure version for template injection
         except Exception as e:
             # If template rendering fails, show the raw note
             rendered_note = transaction.note

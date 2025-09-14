@@ -95,8 +95,8 @@ def create_app(config_class=Config):
     app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])
 
     # Secure methods for export
-    # app.add_url_rule('/export', 'export_transactions', export_transactions, methods=['GET', 'POST'])
-    # app.add_url_rule('/export/download', 'download_export_file', download_export_file, methods=['GET'])
+    # app.add_url_rule('/export', 'export_transactions', export_transactions_secure, methods=['GET', 'POST'])
+    # app.add_url_rule('/export/download', 'download_export_file', download_export_file_secure, methods=['GET'])
 
     app.add_url_rule('/import', 'import_transactions', import_transactions, methods=['GET', 'POST'])
     app.add_url_rule('/archive', 'transaction_archive', transaction_archive, methods=['GET', 'POST'])
