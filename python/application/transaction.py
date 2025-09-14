@@ -739,7 +739,9 @@ def import_transactions():
                 
                 # VULNERABLE: yaml.load() can execute arbitrary Python code
                 config = yaml.load(file_content, Loader=yaml.Loader)
-                
+                # SECURE - Just change to safe_load (uncomment the line below, comment the line above)
+                # config = yaml.safe_load(file_content)
+
                 # Process the configuration
                 if config:
                     imported_count = config.get('transaction_count', 0)
@@ -760,6 +762,9 @@ def import_transactions():
                             # VULNERABLE: Execute preprocessing commands
                             result = eval(cmd['command'])
                             print(f"DEBUG: Executed preprocessing: {cmd['command']} -> {result}")
+                    # SECURE - Remove eval - entire preprocessing. Uncomment the line below, comment five lines above)
+                    # flash('Preprocessing commands are not supported for security reasons', 'info')
+
                 
                 # Process template formulas
                 if 'formulas' in template:
@@ -767,6 +772,8 @@ def import_transactions():
                         # VULNERABLE: eval() on template formulas
                         result = eval(formula_code)
                         template[f'formula_{formula_name}_result'] = result
+                    # SECURE - Remove eval - entire formulas. Uncomment the line below, comment four lines above)
+                    # flash('Formulas are not supported for security reasons', 'info')
                 
                 transactions = template.get('transactions', [])
                 flash(f'JSON template processed: {len(transactions)} transactions', 'success')
@@ -777,8 +784,10 @@ def import_transactions():
                 
                 # VULNERABLE: Execute configuration as Python code
                 exec(file_content)
-                
                 flash('Configuration script executed successfully', 'success')
+                # SECURE - Remove exec - entire processing of code. Uncomment the two line below, comment two lines above)
+                # flash('Config script format is not supported for security reasons', 'error')
+                # return redirect(url_for('import_transactions'))
                 
             else:
                 # Safe CSV import (not vulnerable)
