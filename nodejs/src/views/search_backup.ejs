@@ -1,0 +1,288 @@
+<%- include('base', { 
+    title: 'Search Transactions - ' + (process.env.BANK_NAME || 'Kerata-Zemke Banking'),
+    user: user,
+    body: `
+<div class="container my-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Search Transactions</h1>
+                    <p class="text-muted mb-0">Find transactions by company name or date range</p>
+                </div>
+                <div>
+                    <a href="/dashboard" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <% if (typeof flashMessage !== 'undefined' && flashMessage) { %>
+    <div class="alert alert-<%= flashType %> alert-dismissible fade show" role="alert">
+        <%= flashMessage %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <%= error %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+
+    <div class="row">
+        <!-- Search Form -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-search me-2"></i>Transaction Search
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="/search-backup">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="company" name="company" 
+                                       placeholder="Enter company name..." 
+                                       value="<%= typeof searchParams !== 'undefined' ? searchParams.company || '' : '' %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       placeholder="0.00" step="0.01"
+                                       value="<%= typeof searchParams !== 'undefined' ? searchParams.amount || '' : '' %>">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_from" class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from"
+                                       value="<%= typeof searchParams !== 'undefined' ? searchParams.date_from || '' : '' %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_to" class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to"
+                                       value="<%= typeof searchParams !== 'undefined' ? searchParams.date_to || '' : '' %>">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="transaction_type" class="form-label">Transaction Type</label>
+                                <select class="form-control" id="transaction_type" name="transaction_type">
+                                    <option value="">All Types</option>
+                                    <option value="credit" <%= (typeof searchParams !== 'undefined' && searchParams.transaction_type === 'credit') ? 'selected' : '' %>>Credit</option>
+                                    <option value="debit" <%= (typeof searchParams !== 'undefined' && searchParams.transaction_type === 'debit') ? 'selected' : '' %>>Debit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <input type="text" class="form-control" id="category" name="category" 
+                                       placeholder="Enter category..."
+                                       value="<%= typeof searchParams !== 'undefined' ? searchParams.category || '' : '' %>">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Search Transactions
+                            </button>
+                            <a href="/search-backup" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Clear All
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <% if (typeof transactions !== 'undefined' && transactions && transactions.length > 0) { %>
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Search Results
+                    </h5>
+                    <span class="badge bg-primary"><%= transactions.length %> transaction<%= transactions.length !== 1 ? 's' : '' %> found</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Company</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% transactions.forEach(function(transaction) { %>
+                                <tr>
+                                    <td>
+                                        <small><%= new Date(transaction.date).toLocaleDateString() %></small>
+                                    </td>
+                                    <td>
+                                        <strong><%= transaction.company %></strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted"><%= transaction.description || 'No description' %></small>
+                                    </td>
+                                    <td>
+                                        <span class="<%= transaction.transactionType === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
+                                            <%= transaction.transactionType === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge <%= transaction.transactionType === 'credit' ? 'bg-success' : 'bg-danger' %>">
+                                            <i class="bi <%= transaction.transactionType === 'credit' ? 'bi-arrow-down' : 'bi-arrow-up' %> me-1"></i>
+                                            <%= transaction.transactionType.charAt(0).toUpperCase() + transaction.transactionType.slice(1) %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/transaction/<%= transaction.id %>" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <% } else if (typeof searchPerformed !== 'undefined' && searchPerformed) { %>
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                    <h5>No transactions found</h5>
+                    <p class="text-muted">Try adjusting your search criteria and try again.</p>
+                </div>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Search Tips -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Search Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0">
+                            <strong>Company Search</strong>
+                            <br><small class="text-muted">Use partial names for better results</small>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <strong>Date Range</strong>
+                            <br><small class="text-muted">Leave blank to search all dates</small>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <strong>Amount Filter</strong>
+                            <br><small class="text-muted">Find transactions of specific amounts</small>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <strong>Category</strong>
+                            <br><small class="text-muted">Filter by transaction category</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-filter me-2"></i>Quick Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/search-backup?transaction_type=credit" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-arrow-down me-2"></i>Credit Transactions
+                        </a>
+                        <a href="/search-backup?transaction_type=debit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-arrow-up me-2"></i>Debit Transactions
+                        </a>
+                        <a href="/search-backup?date_from=<%= new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0] %>" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-calendar-range me-2"></i>Last 30 Days
+                        </a>
+                        <a href="/search-backup?date_from=<%= new Date(Date.now() - 90*24*60*60*1000).toISOString().split('T')[0] %>" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-calendar3-range me-2"></i>Last 90 Days
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>Account Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Account Holder</small>
+                        <div class="fw-semibold"><%= user.firstName %> <%= user.lastName %></div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Account Number</small>
+                        <div class="fw-semibold"><%= user.accountNumber %></div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Current Balance</small>
+                        <div class="fw-semibold text-primary">$<%= parseFloat(user.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set default date range to last 30 days if no dates are specified
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFrom = document.getElementById('date_from');
+    const dateTo = document.getElementById('date_to');
+    
+    // Auto-set date range helper
+    const setDateRange = function(days) {
+        const endDate = new Date();
+        const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
+        
+        dateFrom.value = startDate.toISOString().split('T')[0];
+        dateTo.value = endDate.toISOString().split('T')[0];
+    };
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const hasFilters = document.getElementById('company').value.trim() ||
+                          document.getElementById('amount').value.trim() ||
+                          document.getElementById('date_from').value ||
+                          document.getElementById('date_to').value ||
+                          document.getElementById('transaction_type').value ||
+                          document.getElementById('category').value.trim();
+        
+        if (!hasFilters) {
+            e.preventDefault();
+            alert('Please enter at least one search criteria.');
+            return false;
+        }
+    });
+});
+</script>
+` }) %>

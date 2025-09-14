@@ -172,7 +172,7 @@
                                 </div>
                                 <div>
                                     <h6 class="card-subtitle mb-1 text-white-50">Current Balance</h6>
-                                    <h4 class="card-title mb-0">$<%= parseFloat(user.balance).toFixed(2) %></h4>
+                                    <h4 class="card-title mb-0">$<%= parseFloat(user.balance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +188,7 @@
                                 </div>
                                 <div>
                                     <h6 class="card-subtitle mb-1 text-white-50">Period Credits</h6>
-                                    <h4 class="card-title mb-0">$<%= summary.totalCredits.toFixed(2) %></h4>
+                                    <h4 class="card-title mb-0">$<%= summary.totalCredits.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                                 </div>
                             </div>
                         </div>
@@ -204,7 +204,7 @@
                                 </div>
                                 <div>
                                     <h6 class="card-subtitle mb-1 text-white-50">Period Debits</h6>
-                                    <h4 class="card-title mb-0">$<%= summary.totalDebits.toFixed(2) %></h4>
+                                    <h4 class="card-title mb-0">$<%= summary.totalDebits.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                                 </div>
                             </div>
                         </div>
@@ -293,14 +293,14 @@
                                             </td>
                                             <td class="text-end">
                                                 <span class="<%= transaction.transaction_type === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
-                                                    <%= transaction.transaction_type === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toFixed(2) %>
+                                                    <%= transaction.transaction_type === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                                 </span>
                                             </td>
                                             <td class="text-end fw-semibold">
-                                                $<%= parseFloat(transaction.balance_after).toFixed(2) %>
+                                                $<%= parseFloat(transaction.balance_after).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                             </td>
                                             <td>
-                                                <small class="font-monospace"><%= transaction.reference_number.substring(0, 10) %>...</small>
+                                                <small class="font-monospace"><%= transaction.reference_number ? transaction.reference_number.substring(0, 10) : 'N/A' %>...</small>
                                             </td>
                                         </tr>
                                         <% }); %>

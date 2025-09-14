@@ -75,7 +75,40 @@ router.get('/detail/:id', async (req: Request, res: Response) => {
             });
         }
         
-        res.render('transaction', { transaction, user });
+        // VULNERABLE: Template injection in note rendering
+        let renderedNote = null;
+        if (transaction.note) {
+            try {
+                // VULNERABILITY: Directly rendering user input as EJS template
+                // This allows template injection attacks like <%= 7*7 %> or more dangerous payloads
+                const ejs = require('ejs');
+                renderedNote = ejs.render(transaction.note, {
+                    user: user,
+                    transaction: transaction,
+                    // Expose other potentially dangerous objects
+                    require: require,
+                    process: process
+                });
+            } catch (templateError) {
+                console.log('Template rendering error (potential injection attempt):', (templateError as Error).message);
+                // Fall back to raw note if template rendering fails
+                renderedNote = transaction.note;
+            }
+        }
+        
+        // Get related transactions for sidebar
+        const relatedTransactions = await transactionRepo.find({
+            where: { userId: user.id, company: transaction.company },
+            order: { date: 'DESC' },
+            take: 5
+        });
+
+        res.render('transaction', { 
+            transaction, 
+            user,
+            renderedNote,
+            relatedTransactions: relatedTransactions.filter(t => t.id !== transaction.id)
+        });
     } catch (error) {
         console.error('Transaction detail error:', error);
         res.status(500).render('error', { 
@@ -86,11 +119,80 @@ router.get('/detail/:id', async (req: Request, res: Response) => {
 });
 
 /**
+ * Update transaction note with template injection vulnerability
+ * POST /transactions/detail/:id - Handle note updates with template rendering
+ */
+router.post('/detail/:id', async (req: Request, res: Response) => {
+    try {
+        const user = req.user as User;
+        const transactionId = parseInt(req.params.id);
+        const { transaction_note } = req.body;
+        
+        const transactionRepo = AppDataSource.getRepository(Transaction);
+        const transaction = await transactionRepo.findOne({
+            where: { id: transactionId, userId: user.id },
+            relations: ['user']
+        });
+        
+        if (!transaction) {
+            return res.status(404).render('error', {
+                message: 'Transaction not found or you do not have permission to view it.'
+            });
+        }
+        
+        // Update the note
+        transaction.note = transaction_note || null;
+        await transactionRepo.save(transaction);
+        
+        // VULNERABLE: Template injection in note rendering
+        let renderedNote = null;
+        if (transaction.note) {
+            try {
+                // VULNERABILITY: Directly rendering user input as EJS template
+                // This allows template injection attacks like <%= 7*7 %> or more dangerous payloads
+                const ejs = require('ejs');
+                renderedNote = ejs.render(transaction.note, {
+                    user: user,
+                    transaction: transaction,
+                    // Expose other potentially dangerous objects
+                    require: require,
+                    process: process
+                });
+            } catch (templateError) {
+                console.log('Template rendering error (potential injection attempt):', (templateError as Error).message);
+                // Fall back to raw note if template rendering fails
+                renderedNote = transaction.note;
+            }
+        }
+        
+        // Get related transactions for sidebar
+        const relatedTransactions = await transactionRepo.find({
+            where: { userId: user.id, company: transaction.company },
+            order: { date: 'DESC' },
+            take: 5
+        });
+        
+        res.render('transaction', { 
+            transaction, 
+            user,
+            renderedNote,
+            relatedTransactions: relatedTransactions.filter(t => t.id !== transaction.id)
+        });
+    } catch (error) {
+        console.error('Transaction note update error:', error);
+        res.status(500).render('error', { 
+            message: 'Failed to update transaction note',
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
+    }
+});
+
+/**
  * VULNERABLE: Advanced search using raw SQL with injection points
  * This is intentionally vulnerable for security training
  */
 async function vulnerableAdvancedSearch(userId: number, query: any): Promise<any[]> {
-    const { company, amount_min, amount_max, date_from, date_to } = query;
+    const { company, amount_min, amount_max, date_from, date_to, transaction_type, category, sort_by, sort_order } = query;
     
     // Build vulnerable SQL query with string concatenation
     let sql = `SELECT t.*, u.first_name, u.last_name FROM transactions t 
@@ -102,6 +204,16 @@ async function vulnerableAdvancedSearch(userId: number, query: any): Promise<any
     if (company) {
         // VULNERABLE: Direct string interpolation - SQL injection point
         conditions.push(`t.company LIKE '%${company}%'`);
+    }
+    
+    if (transaction_type) {
+        // VULNERABLE: Direct string interpolation - SQL injection point
+        conditions.push(`t.transaction_type = '${transaction_type}'`);
+    }
+    
+    if (category) {
+        // VULNERABLE: Direct string interpolation - SQL injection point
+        conditions.push(`t.category LIKE '%${category}%'`);
     }
     
     if (amount_min) {
@@ -128,12 +240,41 @@ async function vulnerableAdvancedSearch(userId: number, query: any): Promise<any
         sql += ' AND ' + conditions.join(' AND ');
     }
     
-    sql += ' ORDER BY t.date DESC LIMIT 50';
+    // Add ORDER BY clause with potential injection points
+    let orderByClause = 't.date DESC'; // Default sorting
+    
+    if (sort_by) {
+        // VULNERABLE: Direct column name injection possible
+        const direction = sort_order === 'asc' ? 'ASC' : 'DESC';
+        orderByClause = `t.${sort_by} ${direction}`;
+    }
+    
+    sql += ` ORDER BY ${orderByClause} LIMIT 50`;
     
     console.log('Executing vulnerable SQL:', sql); // For training visibility
     
     const result = await AppDataSource.query(sql);
-    return result;
+    
+    // Map raw SQL results to match TypeORM entity property names
+    // This ensures templates work consistently for both safe and vulnerable searches
+    return result.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        transactionType: row.transaction_type,
+        amount: row.amount,
+        company: row.company,
+        description: row.description,
+        date: row.date,
+        referenceNumber: row.reference_number,
+        balanceAfter: row.balance_after,
+        category: row.category,
+        note: row.note,
+        // Include user data if joined
+        user: row.first_name ? {
+            firstName: row.first_name,
+            lastName: row.last_name
+        } : null
+    }));
 }
 
 /**
@@ -315,40 +456,78 @@ router.post('/archive', async (req: Request, res: Response) => {
 });
 
 /**
- * Mock stored procedure to simulate get_archived_transactions
- * In a real app, this would call an actual stored procedure
+ * VULNERABLE: Call get_archived_transactions stored procedure with SQL injection vulnerability
+ * Matches the Python implementation's vulnerable stored procedure call
  */
 async function callArchivedTransactionsProcedure(userId: number, year: string, month: string): Promise<any[]> {
-    const transactionRepo = AppDataSource.getRepository(Transaction);
-    
-    // Create date range for the specified month/year
-    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
-    
-    // Query transactions in the date range (simulating stored procedure)
-    const transactions = await transactionRepo
-        .createQueryBuilder('transaction')
-        .leftJoinAndSelect('transaction.user', 'user')
-        .where('transaction.userId = :userId', { userId })
-        .andWhere('transaction.date >= :startDate', { startDate })
-        .andWhere('transaction.date <= :endDate', { endDate })
-        .orderBy('transaction.date', 'DESC')
-        .getMany();
-    
-    // Convert to archive format (simulating stored procedure result structure)
-    return transactions.map(t => ({
-        id: t.id,
-        date: t.date,
-        company: t.company,
-        description: t.description,
-        transaction_type: t.transactionType,
-        amount: t.amount,
-        balance_after: t.balanceAfter,
-        reference_number: t.referenceNumber,
-        category: t.category || 'General',
-        user_id: t.userId,
-        is_credit: () => t.transactionType === 'credit'
-    }));
+    try {
+        // VULNERABLE: Direct parameter substitution in stored procedure call
+        // This allows SQL injection through the year and month parameters
+        const procedureCall = `SELECT * FROM get_archived_transactions('${year}', '${month}') WHERE user_id = ${userId}`;
+        
+        console.log('Executing vulnerable stored procedure call:', procedureCall); // For training visibility
+        
+        const result = await AppDataSource.query(procedureCall);
+        
+        // Convert result rows to transaction-like objects
+        return result.map((row: any) => {
+            // Create object with helper method for credit/debit checking
+            const transaction = {
+                id: row.id,
+                date: row.date,
+                company: row.company || '',
+                description: row.description || '',
+                transaction_type: row.transaction_type || '',
+                amount: row.amount || 0,
+                balance_after: row.balance_after || 0,
+                reference_number: row.reference_number || '',
+                category: row.category || 'General',
+                user_id: row.user_id,
+                is_credit: function() {
+                    return this.transaction_type?.toLowerCase() === 'credit';
+                }
+            };
+            
+            return transaction;
+        });
+        
+    } catch (error: any) {
+        console.error('Stored procedure call error:', error);
+        throw new Error(`Database error: ${error.message}`);
+    }
+}
+
+/**
+ * SECURE: Alternative secure stored procedure call (commented for training)
+ * This shows how to properly call the stored procedure with parameterized queries
+ */
+async function callArchivedTransactionsProcedureSecure(userId: number, year: string, month: string): Promise<any[]> {
+    try {
+        // SECURE: Using parameterized query to prevent injection
+        const procedureCall = `SELECT * FROM get_archived_transactions($1, $2) WHERE user_id = $3`;
+        
+        const result = await AppDataSource.query(procedureCall, [year, month, userId]);
+        
+        return result.map((row: any) => ({
+            id: row.id,
+            date: row.date,
+            company: row.company || '',
+            description: row.description || '',
+            transaction_type: row.transaction_type || '',
+            amount: row.amount || 0,
+            balance_after: row.balance_after || 0,
+            reference_number: row.reference_number || '',
+            category: row.category || 'General',
+            user_id: row.user_id,
+            is_credit: function() {
+                return this.transaction_type?.toLowerCase() === 'credit';
+            }
+        }));
+        
+    } catch (error: any) {
+        console.error('Stored procedure call error:', error);
+        throw new Error(`Database error: ${error.message}`);
+    }
 }
 
 export default router;

@@ -83,7 +83,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h3>Account: <%= user.account_number %> | <%= user.first_name %> <%= user.last_name %></h3>
+                    <h3>Account: <%= user.accountNumber %> | <%= user.firstName %> <%= user.lastName %></h3>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
                         </div>
                         <div>
                             <h6 class="card-subtitle mb-1 text-white-50">Current Balance</h6>
-                            <h4 class="card-title mb-0">$<%= parseFloat(user.balance).toFixed(2) %></h4>
+                            <h4 class="card-title mb-0">$<%= parseFloat(user.balance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                         </div>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                         </div>
                         <div>
                             <h6 class="card-subtitle mb-1 text-white-50">Total Credits</h6>
-                            <h4 class="card-title mb-0">$<%= (stats.totalVolume - userStats.totalSpending).toFixed(2) %></h4>
+                            <h4 class="card-title mb-0">$<%= summary.total_credits.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                         </div>
                     </div>
                 </div>
@@ -132,7 +132,7 @@
                         </div>
                         <div>
                             <h6 class="card-subtitle mb-1 text-white-50">Total Debits</h6>
-                            <h4 class="card-title mb-0">$<%= userStats.totalSpending.toFixed(2) %></h4>
+                            <h4 class="card-title mb-0">$<%= summary.total_debits.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h4>
                         </div>
                     </div>
                 </div>
@@ -148,8 +148,8 @@
                         </div>
                         <div>
                             <h6 class="card-subtitle mb-1 text-white-50">Recent Activity</h6>
-                            <h4 class="card-title mb-0"><%= userStats.transactionCount %></h4>
-                            <small class="text-white-50">Total transactions</small>
+                            <h4 class="card-title mb-0"><%= summary.recent_activity_count %></h4>
+                            <small class="text-white-50">Last 30 days</small>
                         </div>
                     </div>
                 </div>
@@ -213,12 +213,12 @@
                         <i class="bi bi-list-ul me-2"></i>Recent Transactions
                     </h5>
                     <small class="text-muted">
-                        Last <%= recentTransactions.length %> transactions
+                        Page <%= transactions.page %> of <%= transactions.pages %>
                     </small>
                 </div>
                 
                 <div class="card-body p-0">
-                    <% if (recentTransactions && recentTransactions.length > 0) { %>
+                    <% if (transactions.items && transactions.items.length > 0) { %>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
@@ -232,7 +232,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% recentTransactions.forEach(function(transaction) { %>
+                                <% transactions.items.forEach(function(transaction) { %>
                                 <tr>
                                     <td>
                                         <div class="fw-semibold"><%= new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></div>
@@ -245,7 +245,7 @@
                                         <% } %>
                                     </td>
                                     <td>
-                                        <% if (transaction.transaction_type === 'credit') { %>
+                                        <% if (transaction.transactionType === 'credit') { %>
                                         <span class="badge bg-success">
                                             <i class="bi bi-arrow-down me-1"></i>Credit
                                         </span>
@@ -256,12 +256,12 @@
                                         <% } %>
                                     </td>
                                     <td class="text-end">
-                                        <span class="<%= transaction.transaction_type === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
-                                            <%= transaction.transaction_type === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toFixed(2) %>
+                                        <span class="<%= transaction.transactionType === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
+                                            <%= transaction.transactionType === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                         </span>
                                     </td>
                                     <td class="text-end fw-semibold">
-                                        $<%= parseFloat(transaction.balance_after).toFixed(2) %>
+                                        $<%= parseFloat(transaction.balanceAfter).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                     </td>
                                     <td>
                                         <a href="/transactions/detail/<%= transaction.id %>" 
@@ -274,6 +274,44 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    <% if (transactions.pages > 1) { %>
+                    <div class="card-footer">
+                        <nav aria-label="Transaction pagination">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <% if (transactions.has_prev) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/dashboard?page=<%= transactions.prev_num %>">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <% } %>
+                                
+                                <% for (let pageNum = Math.max(1, transactions.page - 2); pageNum <= Math.min(transactions.pages, transactions.page + 2); pageNum++) { %>
+                                    <% if (pageNum !== transactions.page) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/dashboard?page=<%= pageNum %>"><%= pageNum %></a>
+                                    </li>
+                                    <% } else { %>
+                                    <li class="page-item active">
+                                        <span class="page-link"><%= pageNum %></span>
+                                    </li>
+                                    <% } %>
+                                <% } %>
+                                
+                                <% if (transactions.has_next) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/dashboard?page=<%= transactions.next_num %>">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <% } %>
+                            </ul>
+                        </nav>
+                    </div>
+                    <% } %>
+                    
                     <% } else { %>
                     <div class="text-center py-5">
                         <i class="bi bi-inbox fs-1 text-muted mb-3"></i>

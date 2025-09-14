@@ -24,6 +24,9 @@
   "author": "Security Training Team",
   "license": "MIT",
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/multer": "^2.0.0",
+    "axios": "^1.12.2",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -33,7 +36,9 @@
     "express-session": "^1.17.3",
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
+    "js-yaml": "^4.1.0",
     "morgan": "^1.10.0",
+    "multer": "^2.0.2",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.3.17"

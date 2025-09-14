@@ -165,6 +165,7 @@ router.get('/profile', activeUserRequired, async (req: Request, res: Response) =
         
         res.render('profile', {
             title: 'Profile',
+            user: user,
             profileStats
         });
     } catch (error) {

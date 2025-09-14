@@ -89,12 +89,16 @@ import homeRoutes from './routes/home';
 import transactionRoutes from './routes/transaction';
 import feedbackRoutes from './routes/feedback';
 import apiRoutes from './routes/api';
+import importRoutes from './routes/import';
+import aiRoutes from './routes/ai';
 
 app.use('/', homeRoutes);
 app.use('/', userRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/feedback', feedbackRoutes);
 app.use('/api', apiRoutes);
+app.use('/', importRoutes);
+app.use('/ai', aiRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);

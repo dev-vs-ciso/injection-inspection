@@ -275,8 +275,82 @@ def _create_archived_transactions_function_impl(db):
     $$;
     """
     
+    
+    function_secure_sql = """
+    CREATE OR REPLACE FUNCTION get_archived_transactions_secure(
+        year_param VARCHAR(4),
+        month_param VARCHAR(2)
+    )
+    RETURNS TABLE(
+        id INTEGER,
+        user_id INTEGER,
+        transaction_type VARCHAR(20),
+        amount NUMERIC(12,2),
+        company VARCHAR(100),
+        description TEXT,
+        date TIMESTAMP WITH TIME ZONE,
+        reference_number VARCHAR(50),
+        balance_after NUMERIC(12,2),
+        category VARCHAR(30)
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        table_name TEXT;
+        query_text TEXT;
+    BEGIN
+        -- SECURE: Input validation and sanitization
+        
+        -- 1. Validate year parameter (4 digits, reasonable range)
+        IF year_param !~ '^(19|20)[0-9]\{2\}$' THEN
+            RAISE EXCEPTION 'Invalid year parameter: must be 4 digits between 1900-2099';
+        END IF;
+        
+        -- 2. Validate month parameter (01-12)
+        IF month_param !~ '^(0[1-9]|1[0-2])$' THEN
+            RAISE EXCEPTION 'Invalid month parameter: must be 01-12';
+        END IF;
+        
+        -- 3. Construct table name safely using validated inputs
+        table_name := 'transactions_' || year_param || month_param;
+        
+        -- 4. Use format() with %I identifier escaping to prevent injection
+        query_text := format('
+            SELECT id, user_id, transaction_type, amount, company, 
+                   description, date, reference_number, balance_after, category
+            FROM public.%I
+            ORDER BY date DESC',
+            table_name
+        );
+        
+        -- 5. Check if table exists before executing
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = table_name
+        ) THEN
+            -- Return empty result if table doesn't exist
+            RETURN;
+        END IF;
+        
+        -- 6. Execute the safely constructed query
+        RETURN QUERY EXECUTE query_text;
+        
+    EXCEPTION
+        WHEN undefined_table THEN
+            -- Table doesn't exist, return empty result
+            RETURN;
+        WHEN OTHERS THEN
+            -- Log error and return empty result
+            RAISE WARNING 'Error in get_archived_transactions: %', SQLERRM;
+            RETURN;
+    END;
+    $$;
+    """
+    
     try:
         db.session.execute(text(function_sql))
+        db.session.execute(text(function_secure_sql))
         db.session.commit()
         print("    ✓ PostgreSQL function created successfully")
     except Exception as e:

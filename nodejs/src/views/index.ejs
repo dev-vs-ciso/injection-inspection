@@ -132,7 +132,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1"></i><%= user.first_name %>
+                            <i class="bi bi-person-circle me-1"></i><%= user.firstName %>
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="/profile">
@@ -248,7 +248,7 @@
                     <div class="d-flex align-items-center justify-content-center mb-3">
                         <i class="bi bi-currency-dollar fs-1 text-primary"></i>
                     </div>
-                    <h3 class="card-title">$<%= (stats.total_volume || 0).toFixed(2) %></h3>
+                    <h3 class="card-title">$<%= (stats.total_volume || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h3>
                     <p class="card-text text-muted">Total Volume</p>
                 </div>
             </div>
@@ -259,7 +259,7 @@
                     <div class="d-flex align-items-center justify-content-center mb-3">
                         <i class="bi bi-calendar-month fs-1 text-primary"></i>
                     </div>
-                    <h3 class="card-title">$<%= (stats.monthly_volume || 0).toFixed(2) %></h3>
+                    <h3 class="card-title">$<%= (stats.monthly_volume || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h3>
                     <p class="card-text text-muted">This Month</p>
                 </div>
             </div>

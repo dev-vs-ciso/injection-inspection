@@ -340,7 +340,7 @@
                                         <% } %>
                                     </td>
                                     <td>
-                                        <% if (transaction.transaction_type === 'credit') { %>
+                                        <% if (transaction.transactionType === 'credit') { %>
                                         <span class="badge bg-success">
                                             <i class="bi bi-arrow-down me-1"></i>Credit
                                         </span>
@@ -351,15 +351,15 @@
                                         <% } %>
                                     </td>
                                     <td class="text-end">
-                                        <span class="<%= transaction.transaction_type === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
-                                            <%= transaction.transaction_type === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toFixed(2) %>
+                                        <span class="<%= transaction.transactionType === 'credit' ? 'transaction-credit' : 'transaction-debit' %> fw-semibold">
+                                            <%= transaction.transactionType === 'credit' ? '+' : '-' %>$<%= parseFloat(transaction.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                         </span>
                                     </td>
                                     <td class="text-end fw-semibold">
-                                        $<%= parseFloat(transaction.balance_after).toFixed(2) %>
+                                        $<%= parseFloat(transaction.balanceAfter).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
                                     </td>
                                     <td>
-                                        <small class="font-monospace"><%= transaction.reference_number.substring(0, 10) %>...</small>
+                                        <small class="font-monospace"><%= transaction.referenceNumber.substring(0, 10) %>...</small>
                                     </td>
                                     <td>
                                         <a href="/transactions/detail/<%= transaction.id %>" 
