@@ -39,7 +39,7 @@ python python/app.py          # Starts on localhost:5000, auto-debug for local
 # Docker multi-database
 ./setup.sh             # Interactive setup script
 docker-compose -f docker-compose.postgres.yml up -d
-docker exec banking-app python populate_db.py
+docker exec banking-app python python/populate_db.py
 ```
 
 ### Database Population Pattern

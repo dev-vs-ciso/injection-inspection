@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
 from sqlalchemy import text
-from python.app import create_app
+from app import create_app
 from populate_db import (
     SAMPLE_COMPANIES, 
     TRANSACTION_CATEGORIES,
@@ -167,7 +167,7 @@ def populate_all_historical_tables(db=None, User=None):
         app = create_app()
         with app.app_context():
             from flask import current_app
-            from python.models import User as UserModel
+            from models import User as UserModel
             db = current_app.extensions['sqlalchemy']
             User = UserModel
             return _populate_all_historical_tables_impl(db, User)
@@ -293,7 +293,7 @@ def main():
     with app.app_context():
         # Get the properly initialized db instance and models
         from flask import current_app
-        from python.models import User
+        from models import User
         db = current_app.extensions['sqlalchemy']
         
         # Check if historical tables exist

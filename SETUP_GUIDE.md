@@ -79,7 +79,7 @@ sleep 15
 docker-compose -f docker-compose.postgres.yml ps
 
 # 5. Populate database with sample data
-docker exec banking-app python populate_db.py
+docker exec banking-app python python/populate_db.py
 
 # 6. Access the application
 echo "Banking App: http://localhost:5000"

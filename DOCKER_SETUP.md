@@ -1,5 +1,5 @@
 # Docker Setup for Banking Securit# Populate with sample data
-docker exec banking-app python populate_db.py
+docker exec banking-app python python/populate_db.py
 ```
 
 ## 📊 Database Comparisonon
@@ -37,7 +37,7 @@ cp .env.postgres .env
 docker-compose -f docker-compose.postgres.yml up -d
 
 # Populate with sample data
-docker exec banking-app python populate_db.py
+docker exec banking-app python python/populate_db.py
 ```
 
 ## 📊 Database Configuration

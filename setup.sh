@@ -93,7 +93,7 @@ start_postgres() {
     # Initialize database and populate with sample data
     print_color $BLUE "📊 Populating database with sample data..."
     sleep 5  # Give the app a moment to fully start
-    docker exec banking-app python populate_db.py
+    docker exec banking-app python python/populate_db.py
     
     print_header "🎉 POSTGRESQL SETUP COMPLETE"
     print_color $GREEN "Banking Application: http://localhost:5000"
