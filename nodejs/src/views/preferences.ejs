@@ -1,0 +1,86 @@
+<h2>Preferences</h2>
+
+<% if (typeof message !== 'undefined') { %>
+    <div class="alert alert-success">
+        <%= message %>
+    </div>
+<% } %>
+
+<% if (typeof error !== 'undefined') { %>
+    <div class="alert alert-error">
+        <%= error %>
+    </div>
+<% } %>
+
+<form method="POST" action="/preferences">
+    <h3>Standard Preferences</h3>
+    
+    <div class="form-group">
+        <label for="dashboard_layout">Dashboard Layout:</label>
+        <select id="dashboard_layout" name="dashboard_layout">
+            <option value="default" <%= standardPreferences.dashboard_layout === 'default' ? 'selected' : '' %>>Default</option>
+            <option value="compact" <%= standardPreferences.dashboard_layout === 'compact' ? 'selected' : '' %>>Compact</option>
+            <option value="detailed" <%= standardPreferences.dashboard_layout === 'detailed' ? 'selected' : '' %>>Detailed</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="theme">Theme:</label>
+        <select id="theme" name="theme">
+            <option value="light" <%= standardPreferences.theme === 'light' ? 'selected' : '' %>>Light</option>
+            <option value="dark" <%= standardPreferences.theme === 'dark' ? 'selected' : '' %>>Dark</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Dashboard Widgets:</label>
+        <div>
+            <label><input type="checkbox" name="widgets" value="recent_transactions" 
+                <%= standardPreferences.widgets && standardPreferences.widgets.includes('recent_transactions') ? 'checked' : '' %>> Recent Transactions</label>
+        </div>
+        <div>
+            <label><input type="checkbox" name="widgets" value="account_summary" 
+                <%= standardPreferences.widgets && standardPreferences.widgets.includes('account_summary') ? 'checked' : '' %>> Account Summary</label>
+        </div>
+        <div>
+            <label><input type="checkbox" name="widgets" value="spending_chart" 
+                <%= standardPreferences.widgets && standardPreferences.widgets.includes('spending_chart') ? 'checked' : '' %>> Spending Chart</label>
+        </div>
+    </div>
+    
+    <h3>Custom Configuration (Advanced)</h3>
+    <div class="alert alert-error">
+        <strong>🔓 Code Injection Vulnerability:</strong> The custom configuration field uses <code>eval()</code> to process formulas.
+    </div>
+    
+    <div class="form-group">
+        <label for="custom_config">Custom Configuration (JSON with formulas):</label>
+        <textarea id="custom_config" name="custom_config" rows="10" placeholder='Example:
+{
+  "formulas": {
+    "balance_multiplier": "2 * 1000",
+    "date_calc": "new Date().getFullYear()"
+  },
+  "calculations": {
+    "budget": "5000 - 1200"
+  }
+}'><%= customConfig || '' %></textarea>
+        <small>Enter JSON with "formulas" and "calculations" objects. Values will be evaluated with eval().</small>
+    </div>
+    
+    <button type="submit" class="btn">Update Preferences</button>
+    <a href="/profile" class="btn btn-secondary">Cancel</a>
+</form>
+
+<div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+    <h4>🔓 Code Injection Testing</h4>
+    <p>The custom configuration field is <strong>vulnerable to code injection</strong> for training purposes:</p>
+    <pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0;">
+{
+  "formulas": {
+    "test": "console.log('Code executed!')",
+    "dangerous": "require('child_process').exec('whoami')"
+  }
+}</pre>
+    <p><em>Any JavaScript code in the formula values will be executed via eval().</em></p>
+</div>

@@ -1,0 +1,332 @@
+@model InjectionInspection.Models.Transaction
+
+@{
+    ViewData["Title"] = $"Transaction Details - {ViewBag.BankName}";
+    Layout = "_Layout";
+    
+    // Helper functions to determine transaction type
+    bool IsCredit() => Model.TransactionType.ToLower() == "credit";
+    string GetTransactionTypeClass() => IsCredit() ? "text-success" : "text-danger";
+    string GetTransactionBadgeClass() => IsCredit() ? "bg-success" : "bg-danger";
+    string GetTransactionIcon() => IsCredit() ? "bi-arrow-down" : "bi-arrow-up";
+    string GetAmountPrefix() => IsCredit() ? "+" : "-";
+}
+
+<div class="container my-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Home")">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
+        </ol>
+    </nav>
+
+    <!-- Transaction Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-1">Transaction Details</h1>
+                    <p class="text-muted mb-0">Reference: @Model.ReferenceNumber</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge @GetTransactionBadgeClass() fs-6">
+                        <i class="@GetTransactionIcon() me-1"></i>@(IsCredit() ? "Credit" : "Debit") Transaction
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Transaction Details -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-receipt me-2"></i>Transaction Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Date & Time:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            @Model.Date.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Company:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            @Model.Company
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Transaction Type:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            <span class="badge @GetTransactionBadgeClass()">
+                                @Model.TransactionType.ToUpper()
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Amount:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            <span class="fs-4 @GetTransactionTypeClass() fw-bold">
+                                @GetAmountPrefix()$@Model.Amount.ToString("N2")
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Balance After:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            <span class="fs-5 fw-semibold">$@Model.BalanceAfter.ToString("N2")</span>
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Category))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong>Category:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-secondary">@Model.Category</span>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <strong>Reference Number:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            <code>@Model.ReferenceNumber</code>
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                @Model.Description
+                            </div>
+                        </div>
+                    }
+
+                    <!-- User Note Section -->
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>Personal Note:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            @if (ViewBag.RenderedNote != null)
+                            {
+                                <div class="mb-2">
+                                    <!-- VULNERABLE: Rendered template content (allows template injection) -->
+                                    @Html.Raw(ViewBag.RenderedNote)
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(Model.Note))
+                            {
+                                <div class="mb-2">
+                                    <!-- Fallback: Raw note content if rendering failed -->
+                                    @Model.Note
+                                </div>
+                            }
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noteModal">
+                                <i class="bi bi-pencil me-1"></i>@(string.IsNullOrEmpty(Model.Note) ? "Add Note" : "Edit Note")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">Actions</h6>
+                    <div class="btn-group flex-wrap" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+                            <i class="bi bi-printer me-2"></i>Print Receipt
+                        </button>
+                        <a href="@Url.Action("Search", "Transaction", new { company = Model.Company })" class="btn btn-outline-secondary">
+                            <i class="bi bi-search me-2"></i>Find Similar
+                        </a>
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-info">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Related Information -->
+        <div class="col-lg-4">
+            <!-- Account Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>Account Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Account Holder</small>
+                        <div class="fw-semibold">@Model.User.FirstName @Model.User.LastName</div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Account Number</small>
+                        <div class="fw-semibold">@Model.User.AccountNumber</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Current Balance</small>
+                        <div class="fw-semibold text-primary">$@Model.User.Balance.ToString("N2")</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Transactions -->
+            @if (ViewBag.RelatedTransactions != null && ((List<InjectionInspection.Models.Transaction>)ViewBag.RelatedTransactions).Count > 0)
+            {
+                var relatedTransactions = (List<InjectionInspection.Models.Transaction>)ViewBag.RelatedTransactions;
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-link me-2"></i>Related Transactions
+                        </h6>
+                        <small class="text-muted">Other transactions with @Model.Company</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var related in relatedTransactions)
+                            {
+                                <a href="@Url.Action("Detail", new { id = related.Id })" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">@related.Date.ToString("MMM dd, yyyy")</div>
+                                            <small class="text-muted">@related.TransactionType.ToUpper()</small>
+                                        </div>
+                                        <span class="@(related.TransactionType.ToLower() == "credit" ? "text-success" : "text-danger") fw-semibold">
+                                            @(related.TransactionType.ToLower() == "credit" ? "+" : "-")$@related.Amount.ToString("N2")
+                                        </span>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Security Notice -->
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check text-success fs-3 mb-2"></i>
+                    <h6 class="card-title">Transaction Verified</h6>
+                    <p class="card-text small text-muted">
+                        This transaction has been verified and processed securely through our encrypted systems.
+                    </p>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        Processed on @Model.Date.ToString("MMMM dd, yyyy")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Note Edit Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="@Url.Action("Detail", new { id = Model.Id })">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteModalLabel">
+                        <i class="bi bi-pencil me-2"></i>@(string.IsNullOrEmpty(Model.Note) ? "Add Personal Note" : "Edit Personal Note")
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="transaction_note" class="form-label">Note Content</label>
+                        <textarea class="form-control" id="transaction_note" name="transactionNote" rows="6" 
+                                  placeholder="Add your personal note about this transaction...">@(Model.Note ?? "")</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            You can add personal notes, reminders, or additional context about this transaction.
+                            HTML formatting is supported for rich content.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Use HTML tags like &lt;b&gt;, &lt;i&gt;, &lt;u&gt; for formatting, 
+                        or add links with &lt;a href="..."&gt;...&lt;/a&gt;
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Save Note
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.Note))
+                    {
+                        <button type="button" id="clearNoteBtn" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Clear Note
+                        </button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Auto-focus on print button for accessibility and handle clear note button
+document.addEventListener('DOMContentLoaded', function() {
+    // Add print styles
+    const printStyle = document.createElement('style');
+    printStyle.textContent = 
+        '@@media print {' +
+        '  .navbar, .breadcrumb, .btn-group, .card:last-child { display: none !important; }' +
+        '  .container { width: 100% !important; max-width: none !important; }' +
+        '}';
+    document.head.appendChild(printStyle);
+    
+    // Handle clear note button
+    const clearButton = document.getElementById('clearNoteBtn');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            // Clear the textarea content and submit the form
+            const textarea = document.getElementById('transaction_note');
+            const form = clearButton.closest('form');
+            if (textarea && form) {
+                textarea.value = '';
+                form.submit();
+            }
+        });
+    }
+});
+</script>
+}

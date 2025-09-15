@@ -1,0 +1,64 @@
+{
+  "name": "injection-inspection-nodejs",
+  "version": "1.0.0",
+  "description": "Node.js TypeScript port of the Banking Security Training Application",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "nodemon --exec tsx src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "populate": "tsx src/scripts/populate-db.ts",
+    "docker:build": "docker build -t banking-nodejs .",
+    "docker:dev": "docker-compose -f docker-compose.nodejs.yml up --build",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "security",
+    "training",
+    "banking",
+    "vulnerability",
+    "sql-injection",
+    "typescript",
+    "express"
+  ],
+  "author": "Security Training Team",
+  "license": "MIT",
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/multer": "^2.0.0",
+    "axios": "^1.12.2",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "js-yaml": "^4.1.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.17"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.7",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^20.5.0",
+    "@types/pg": "^8.10.2",
+    "nodemon": "^3.0.1",
+    "rimraf": "^5.0.1",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

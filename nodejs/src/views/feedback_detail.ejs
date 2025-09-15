@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - SecureBank Training</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+        }
+        .transaction-debit {
+            color: #dc3545;
+        }
+        .transaction-credit {
+            color: #198754;
+        }
+        .card-stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .footer {
+            margin-top: auto;
+            padding: 20px 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: white;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .alert-security {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .breadcrumb {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 0.375rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: ">";
+            color: #6c757d;
+        }
+
+        .breadcrumb-item a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .feedback-content {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .avatar-circle {
+            background: #0d6efd;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-cpu me-2"></i>SecureBank Training
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <% if (user) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/transactions/search">Search</a>
+                        </li>
+                    <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/feedback">
+                            <i class="bi bi-star me-1"></i>Reviews
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <% if (user) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i><%= user.firstName %>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="bi bi-person me-2"></i>Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="/preferences">
+                                    <i class="bi bi-gear me-2"></i>Preferences
+                                </a></li>
+                                <li><a class="dropdown-item" href="/feedback/submit">
+                                    <i class="bi bi-plus-circle me-2"></i>Write Review
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container my-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/feedback">Customer Feedback</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Review Details</li>
+                </ol>
+            </nav>
+
+            <!-- Feedback Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="h3 mb-1">Customer Review</h1>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-primary fs-6 mb-2">
+                                <%= new Date(feedback.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %>
+                            </div>
+                            <div class="text-warning fs-4">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <% if (i <= feedback.score) { %>
+                                        <i class="bi bi-star-fill"></i>
+                                    <% } else { %>
+                                        <i class="bi bi-star"></i>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Main Feedback Content -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-chat-quote me-2"></i>Customer Experience
+                            </h5>
+                            <div class="text-warning fs-5">
+                                <%= feedback.score %>/5 Stars
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>Customer:</strong>
+                                </div>
+                                <div class="col-sm-9">
+                                    <% if (feedback.isAnonymous) { %>
+                                        **********
+                                        <span class="badge bg-secondary ms-2">Anonymous</span>
+                                    <% } else if (feedback.user) { %>
+                                        <%= feedback.user.firstName.substring(0, 2) %>********
+                                    <% } else { %>
+                                        Unknown Customer
+                                    <% } %>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>Date:</strong>
+                                </div>
+                                <div class="col-sm-9">
+                                    <%= new Date(feedback.createdAt).toLocaleDateString('en-US', { 
+                                        month: 'long', 
+                                        day: 'numeric', 
+                                        year: 'numeric', 
+                                        hour: 'numeric', 
+                                        minute: '2-digit',
+                                        hour12: true
+                                    }) %>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>Rating:</strong>
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-warning fs-5 me-3">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <% if (i <= feedback.score) { %>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <% } else { %>
+                                                    <i class="bi bi-star"></i>
+                                                <% } %>
+                                            <% } %>
+                                        </div>
+                                        <span class="badge 
+                                            <% if (feedback.score >= 4) { %>bg-success
+                                            <% } else if (feedback.score >= 3) { %>bg-warning text-dark
+                                            <% } else { %>bg-danger<% } %>">
+                                            <% if (feedback.score >= 4) { %>Excellent
+                                            <% } else if (feedback.score >= 3) { %>Good
+                                            <% } else { %>Needs Improvement<% } %>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <strong>Review:</strong>
+                                </div>
+                                <div class="col-sm-9">
+                                    <!-- VULNERABLE: XSS - feedback message displayed without escaping for training -->
+                                    <div class="feedback-content border-start border-primary border-3 ps-3">
+                                        <%- feedback.message %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Management Response Section -->
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="bi bi-reply me-2"></i>Management Response
+                            </h6>
+                            <% if (feedback.score >= 4) { %>
+                            <div class="alert alert-success" role="alert">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <strong>Thank you for your positive feedback!</strong><br>
+                                We're delighted to hear about your excellent experience with SecureBank Training. 
+                                Your satisfaction is our top priority, and we'll continue to maintain these high standards.
+                            </div>
+                            <% } else if (feedback.score >= 3) { %>
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Thank you for your feedback!</strong><br>
+                                We appreciate your review and are always looking for ways to improve our services. 
+                                Your input helps us serve you better.
+                            </div>
+                            <% } else { %>
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>We're sorry to hear about your experience.</strong><br>
+                                Your feedback is very important to us. We take all concerns seriously and are committed 
+                                to making improvements. Our customer service team will review this feedback carefully.
+                            </div>
+                            <% } %>
+                            
+                            <div class="mt-3">
+                                <% if (user) { %>
+                                <a href="/feedback/submit" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Write Your Review
+                                </a>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Customer Information -->
+                    <% if (!feedback.isAnonymous && feedback.user) { %>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-person-circle me-2"></i>Customer Profile
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px; border-radius: 50%;">
+                                    <i class="bi bi-person-fill fs-4"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="small">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Customer since:</span>
+                                    <span><%= new Date(feedback.user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) %></span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Account status:</span>
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                            
+                            <% if (other_feedback && other_feedback.length > 0) { %>
+                            <div class="mt-3">
+                                <a href="/feedback/user/<%= feedback.user.id %>" 
+                                   class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-list me-1"></i>View All Reviews by Customer
+                                </a>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <!-- Other Reviews by Same Customer -->
+                    <% if (other_feedback && other_feedback.length > 0) { %>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-list-ul me-2"></i>Other Reviews by This Customer
+                            </h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                <% other_feedback.forEach(function(other) { %>
+                                <a href="/feedback/detail/<%= other.id %>" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-warning small">
+                                                <% for (let i = 1; i <= 5; i++) { %>
+                                                    <% if (i <= other.score) { %>
+                                                        <i class="bi bi-star-fill"></i>
+                                                    <% } else { %>
+                                                        <i class="bi bi-star"></i>
+                                                    <% } %>
+                                                <% } %>
+                                            </div>
+                                            <small class="text-muted"><%= new Date(other.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></small>
+                                        </div>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                </a>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <!-- Feedback Guidelines -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Review Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="small text-muted">
+                                <p class="mb-2"><strong>Our commitment to you:</strong></p>
+                                <ul class="list-unstyled">
+                                    <li class="mb-1">
+                                        <i class="bi bi-check text-success me-1"></i>
+                                        All reviews are from verified customers
+                                    </li>
+                                    <li class="mb-1">
+                                        <i class="bi bi-check text-success me-1"></i>
+                                        We respond to feedback within 48 hours
+                                    </li>
+                                    <li class="mb-1">
+                                        <i class="bi bi-check text-success me-1"></i>
+                                        Your privacy is protected
+                                    </li>
+                                    <li class="mb-1">
+                                        <i class="bi bi-check text-success me-1"></i>
+                                        We use feedback to improve services
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 SecureBank Training</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-exclamation me-1"></i>
+                        For Training Purposes Only
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

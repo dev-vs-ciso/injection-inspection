@@ -209,3 +209,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Dotnet specific ignores
+bin/
+obj/
+
+

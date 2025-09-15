@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - SecureBank Training</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            margin-top: auto;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .feedback-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .feedback-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 120px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h4 {
+            font-size: 24px;
+            margin: 0 0 5px 0;
+            color: #0d6efd;
+            font-weight: 700;
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .submit-feedback-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .feedback-search {
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background: white;
+            color: #212529;
+            font-size: 14px;
+        }
+
+        .search-input::placeholder {
+            color: #6c757d;
+        }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feedback-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feedback-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .feedback-header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .star {
+            font-size: 18px;
+        }
+
+        .star.filled {
+            color: #ffc107;
+        }
+
+        .star.empty {
+            color: #e9ecef;
+        }
+
+        .score {
+            color: #666;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .feedback-meta {
+            text-align: right;
+        }
+
+        .author {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .author a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .author a:hover {
+            text-decoration: underline;
+        }
+
+        .date {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .feedback-content {
+            margin-bottom: 15px;
+        }
+
+        .feedback-message {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .feedback-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .no-feedback {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .no-feedback h3 {
+            margin-bottom: 10px;
+            color: #0d6efd;
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .progress {
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        @media (max-width: 768px) {
+            .feedback-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .feedback-stats {
+                justify-content: center;
+            }
+            
+            .feedback-header-card {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .feedback-meta {
+                text-align: left;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                border-radius: 5px !important;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-shield-lock me-2"></i>SecureBank Training
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <% if (user) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/transactions/search">Search</a>
+                        </li>
+                    <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/feedback">Feedback</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <% if (user) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-2"></i><%= user.firstName %> <%= user.lastName %>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="bi bi-person me-2"></i>Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="/preferences">
+                                    <i class="bi bi-gear me-2"></i>Settings
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container my-4">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-1">
+                                <i class="bi bi-chat-quote me-2"></i>Customer Feedback
+                            </h1>
+                            <p class="text-muted mb-0">What our customers are saying about their banking experience</p>
+                        </div>
+                        <div class="btn-group">
+                            <a href="/" class="btn btn-outline-primary">
+                                <i class="bi bi-house me-2"></i>Home
+                            </a>
+                            <% if (user) { %>
+                            <a href="/feedback/submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Write Review
+                            </a>
+                            <% } else { %>
+                            <a href="/login" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Login to Review
+                            </a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Statistics Summary -->
+            <div class="row mb-4">
+                <div class="col-lg-4 mb-3">
+                    <div class="card bg-primary text-white border-0">
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-2 fw-bold"><%= average_score.toFixed(1) %></div>
+                            <div class="mb-2">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <% if (i <= average_score) { %>
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    <% } else if (i - 0.5 <= average_score) { %>
+                                        <i class="bi bi-star-half text-warning"></i>
+                                    <% } else { %>
+                                        <i class="bi bi-star text-warning"></i>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                            <p class="mb-0">Average Rating</p>
+                            <small class="opacity-75">Based on <%= total_feedback %> reviews</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-8 mb-3">
+                    <div class="card border-0">
+                        <div class="card-header bg-transparent">
+                            <h6 class="mb-0">Rating Distribution</h6>
+                        </div>
+                        <div class="card-body">
+                            <% 
+                            const ratingCounts = [0, 0, 0, 0, 0]; // Index 0 = 1 star, Index 4 = 5 star
+                            feedback_entries.forEach(f => {
+                                if (f.score >= 1 && f.score <= 5) {
+                                    ratingCounts[f.score - 1]++;
+                                }
+                            });
+                            %>
+                            <% for (let score = 5; score >= 1; score--) { 
+                                const scoreCount = ratingCounts[score - 1];
+                                let percentage = 0;
+                                if (total_feedback > 0) {
+                                    percentage = Math.round(scoreCount / total_feedback * 100);
+                                }
+                                const widthStyle = "width: " + percentage + "%";
+                            %>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-3" style="width: 60px;">
+                                    <small><%= score %> star<%= score !== 1 ? 's' : '' %></small>
+                                </div>
+                                <div class="progress flex-grow-1 me-3" style="height: 20px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="<%- widthStyle %>" aria-valuenow="<%= percentage %>" aria-valuemin="0" aria-valuemax="100">
+                                        <% if (percentage > 10) { %><%= scoreCount %><% } %>
+                                    </div>
+                                </div>
+                                <div style="width: 40px;">
+                                    <small class="text-muted"><%= scoreCount %></small>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Entries -->
+            <div class="row">
+                <div class="col-12">
+                    <% if (feedback_entries && feedback_entries.length > 0) { %>
+                    <div class="row">
+                        <% feedback_entries.forEach(function(feedback) { %>
+                        <div class="col-lg-6 mb-4">
+                            <div class="card h-100 border-0">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="text-warning fs-5">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <% if (i <= feedback.score) { %>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <% } else { %>
+                                                    <i class="bi bi-star"></i>
+                                                <% } %>
+                                            <% } %>
+                                        </div>
+                                        <small class="text-muted"><%= new Date(feedback.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></small>
+                                    </div>
+                                    
+                                    <!-- SAFE: Truncated preview of feedback message with proper escaping -->
+                                    <div class="feedback-message mb-3">
+                                        <% 
+                                        const previewMessage = feedback.message.length > 100 ? 
+                                            feedback.message.substring(0, 100) + '...' : 
+                                            feedback.message;
+                                        %>
+                                        <%= previewMessage %>
+                                    </div>
+                                    
+                                    <% if (!feedback.isAnonymous && feedback.user) { %>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            <%= feedback.user.firstName.charAt(0) %><%= feedback.user.lastName.charAt(0) %>
+                                        </div>
+                                        <div>
+                                            <small class="fw-semibold"><%= feedback.user.firstName %> <%= feedback.user.lastName %></small>
+                                            <br><small class="text-muted">Verified Customer</small>
+                                        </div>
+                                    </div>
+                                    <% } else { %>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            ?
+                                        </div>
+                                        <div>
+                                            <small class="fw-semibold">Anonymous Customer</small>
+                                            <br><small class="text-muted">Verified Review</small>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                </div>
+                                
+                                <% if (feedback.score >= 4) { %>
+                                <div class="card-footer bg-success text-white text-center border-0">
+                                    <a class="text-white text-decoration-none" href="/feedback/detail/<%= feedback.id %>">
+                                        <small><i class="bi bi-check-circle me-1"></i>Highly Satisfied Customer</small>
+                                    </a>
+                                </div>
+                                <% } else if (feedback.score <= 2) { %>
+                                <div class="card-footer bg-warning text-dark text-center border-0">
+                                    <a class="text-dark text-decoration-none" href="/feedback/detail/<%= feedback.id %>">
+                                        <small><i class="bi bi-exclamation-triangle me-1"></i>Needs Improvement</small>
+                                    </a>
+                                </div>
+                                <% } else { %>
+                                <div class="card-footer bg-secondary text-white text-center border-0">
+                                    <a class="text-white text-decoration-none" href="/feedback/detail/<%= feedback.id %>">
+                                        <small>Average Experience</small>
+                                    </a>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                    
+                    <% } else { %>
+                    <!-- No Feedback Available -->
+                    <div class="card border-0">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-chat-quote fs-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">No Customer Reviews Yet</h5>
+                            <p class="text-muted">Be the first to share your experience with SecureBank!</p>
+                            <% if (user) { %>
+                            <a href="/feedback/submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Write the First Review
+                            </a>
+                            <% } else { %>
+                            <a href="/login" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login to Write Review
+                            </a>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 SecureBank Training</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-exclamation me-1"></i>
+                        For Training Purposes Only
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
