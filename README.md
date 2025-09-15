@@ -1,6 +1,8 @@
-# Banking Security Training Application
+# Injection Vulnerabilities Training Application
 
-A Flask-based simulated banking application designed for security training purposes. This application provides a realistic banking interface with user accounts, transactions, and search functionality to help train users on banking security concepts.
+A simulated banking application designed for security training purposes. This application provides a realistic banking interface with user accounts, transactions, and search functionality to help train users on banking security concepts.
+
+### [Have ideas, need help? Join our Discord](https://discord.gg/UNBD8A2v9K)
 
 ## **IMPORTANT SECURITY NOTICE**
 
@@ -10,79 +12,53 @@ A Flask-based simulated banking application designed for security training purpo
 - All data is simulated and for training use only
 - Always run in isolated/controlled environments
 
-## Features
 
-- **User Authentication**: Secure login system with password hashing
-- **Account Dashboard**: View account balance and recent transactions
-- **Transaction Management**: Detailed transaction views and search functionality
-- **Database Support**: Configurable database backend (SQLite, PostgreSQL)
-- **Responsive Design**: Bootstrap 5 UI that works on desktop and mobile
-- **Sample Data**: Pre-populated with realistic users and transactions
+## Where are the exploits?
 
-## Project Structure
+You can find a lot of exploits in `knowledge/workshop_exploits` folder. 
+But there are more vulnerabilities in the app, you are free to experiment.
 
-```
-banking_app/
-├── python/                # Python application code
-│   ├── app.py             # Main Flask application
-│   ├── config.py          # Configuration settings
-│   ├── models.py          # Database models (User, Transaction)
-│   ├── decorators.py      # Custom decorators for security
-│   ├── application/       # Route modules
-│   └── templates/         # HTML templates
-├── populate_db.py        # Database population tool
-├── requirements.txt      # Python dependencies
-├── README.md            # This file
-└── templates/           # HTML templates
-    ├── base.html        # Base template with navigation
-    ├── index.html       # Home page with bank stats
-    ├── login.html       # User login page
-    ├── dashboard.html   # User account dashboard
-    ├── transaction.html # Transaction detail view
-    ├── search.html      # Transaction search page
-    └── profile.html     # User profile page
-```
+## Are there some materials or slides?
+
+You can find the presentatioon in the `knowledge/slides` folder.
+
+## The architecture
+
+The system consists of five servers
+- banking application server `banking-app`
+- database server `postgres`
+- pgadmin server `pgadmin`
+- LLM server `banking-ollama`
+- Evil server to host the attacker listeners and netcat `evilcorp-server`
+
+![Diagram](diagram.png "The architecture")
 
 ## Quick Start
 
-### 1. Clone or Download the Application
+### 0. MAKE SURE YOU HAVE DOCKER INSTALLED AND RUNNING!
 
-Download all the files and place them in a directory called `banking_app`.
+### 1. Clone the Repo
 
-### 2. Install Python Dependencies
+`git clone https://github.com/dev-vs-ciso/injection-inspection`
 
-```bash
-cd banking_app
-pip install -r requirements.txt
-```
+### 2. Navigate to the repo folder 
 
-**Minimum Requirements (SQLite only):**
-```bash
-pip install Flask Flask-SQLAlchemy Flask-Login Faker
-```
+`cd injection-inspection`
 
-### 3. Set Up the Database
+### 3. Create the local environment variables
 
-The application uses SQLite by default (no additional setup required).
+`copy .env.postgres .env`
 
-**For other databases, set environment variables:**
+### 4. Build the local infrastructure
+ 
+ Depending whether you are on Linux/Mac or Windows
+`./setup.sh` or `setup.bat`
 
-**PostgreSQL:**
-```bash
-export DATABASE_TYPE=postgresql
-export DB_HOST=localhost
-export DB_NAME=banking
-export DB_USER=postgres
-export DB_PASS=your_password
-```
+select option 1
 
-### 4. Populate the Database
+wait for all builds to finish (this will take time, there are 4GB to download)
 
-Run the population tool to create sample users and transactions:
-
-```bash
-python populate_db.py
-```
+### 5. Get the credentials
 
 This will:
 - Create 30-40 user accounts with random email addresses
@@ -101,77 +77,9 @@ Account:  123456789012
 ============================================================
 ```
 
-### 5. Start the Application
-
-```bash
-python python/app.py
-```
+### 5. Use the Application
 
 The application will start at: `http://127.0.0.1:5000`
-
-## Usage
-
-### Logging In
-
-1. Navigate to the home page
-2. Use the credentials provided by the population tool
-3. Click "Sign In to Your Account"
-
-### Features Available
-
-- **Dashboard**: View account balance and recent transactions
-- **Search**: Find transactions by company name or date range
-- **Transaction Details**: Click on any transaction to view full details
-- **Profile**: View account information and activity summary
-
-### Sample Login Credentials
-
-The population tool generates random users, with random password
-
-## Configuration
-
-### Database Configuration
-
-Edit `config.py` or set environment variables:
-
-```python
-# Default SQLite (no setup required)
-DATABASE_TYPE = 'sqlite'
-
-# PostgreSQL
-DATABASE_TYPE = 'postgresql'
-DB_HOST = 'localhost'
-DB_PORT = '5432'
-DB_NAME = 'banking'
-DB_USER = 'postgres'
-DB_PASS = 'password'
-```
-
-### Application Settings
-
-```python
-SECRET_KEY = 'your-secret-key-here'
-BANK_NAME = "Kerata-Zemke"
-PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
-```
-
-## API Endpoints
-
-### Main Routes
-
-- `GET /` - Home page with bank statistics
-- `GET/POST /login` - User login page
-- `GET /logout` - User logout
-- `GET /dashboard` - User account dashboard (requires login)
-- `GET /transaction/<id>` - Transaction details (requires login)
-- `GET/POST /search` - Transaction search (requires login)
-- `GET /profile` - User profile (requires login)
-
-### API Routes
-
-- `GET /api/stats` - Bank statistics in JSON format
-
-## Security Features
 
 ### Implemented Security Measures
 
@@ -185,77 +93,6 @@ PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 ### Training Vulnerabilities
 
 This application may contain intentional security vulnerabilities for educational purposes. Use only in controlled training environments.
-
-## Database Schema
-
-### Users Table
-- `id` (Primary Key)
-- `email` (Unique)
-- `password_hash` (Securely hashed)
-- `first_name`, `last_name`
-- `account_number` (Unique)
-- `balance` (Decimal)
-- `created_at` (Timestamp)
-- `is_active` (Boolean)
-
-### Transactions Table
-- `id` (Primary Key)
-- `user_id` (Foreign Key)
-- `transaction_type` ('credit' or 'debit')
-- `amount` (Decimal)
-- `company` (String)
-- `description` (Text)
-- `date` (Timestamp)
-- `reference_number` (Unique)
-- `balance_after` (Decimal)
-- `category` (String)
-
-## Development
-
-### Running in Debug Mode
-
-```bash
-export FLASK_DEBUG=1
-python python/app.py
-```
-
-### Resetting the Database
-
-To start fresh:
-```bash
-rm banking.db  # (if using SQLite)
-python populate_db.py
-```
-
-### Adding New Features
-
-The application uses a modular structure:
-- Add new routes in `py`
-- Add new models in `models.py`
-- Add new templates in `templates/`
-- Add new decorators in `decorators.py`
-
-## Troubleshooting
-
-### Common Issues
-
-**Database Connection Error:**
-- Check database credentials in `config.py`
-- Ensure database server is running
-- Verify database exists and user has permissions
-
-**Module Not Found Error:**
-```bash
-pip install -r requirements.txt
-```
-
-**Permission Denied (SQLite):**
-- Ensure write permissions in application directory
-- Check if `banking.db` file is locked by another process
-
-**Population Tool Fails:**
-- Delete existing `banking.db` and try again
-- Check for any conflicting processes
 
 ### Getting Help
 
