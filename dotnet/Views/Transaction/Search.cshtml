@@ -1,0 +1,169 @@
+@{
+    ViewData["Title"] = "Search Transactions";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h2>🔍 Transaction Search</h2>
+        <p class="text-muted">Search and filter your transaction history</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Search Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Search">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="company" name="company" value="@ViewBag.Company" placeholder="Enter company name">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" name="description" value="@ViewBag.Description" placeholder="Transaction description">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="minAmount" class="form-label">Min Amount</label>
+                        <input type="number" step="0.01" class="form-control" id="minAmount" name="minAmount" value="@ViewBag.MinAmount" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="maxAmount" class="form-label">Max Amount</label>
+                        <input type="number" step="0.01" class="form-control" id="maxAmount" name="maxAmount" value="@ViewBag.MaxAmount" placeholder="1000.00">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="searchType" class="form-label">Search Mode</label>
+                        <select class="form-select" id="searchType" name="searchType">
+                            @if (ViewBag.SearchType?.ToString() == "basic")
+                            {
+                                <option value="basic" selected>Basic Search</option>
+                                <option value="advanced">Advanced Search</option>
+                            }
+                            else
+                            {
+                                <option value="basic">Basic Search</option>
+                                <option value="advanced" selected>Advanced Search</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" value="@ViewBag.StartDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" value="@ViewBag.EndDate">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="referenceNumber" class="form-label">Reference Number</label>
+                        <input type="text" class="form-control" id="referenceNumber" name="referenceNumber" value="@ViewBag.ReferenceNumber" placeholder="REF123456">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">🔍 Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.SearchPerformed == true)
+{
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Search Results</h5>
+            @if (ViewBag.Transactions != null)
+            {
+                var transactions = (List<InjectionInspection.Models.Transaction>)ViewBag.Transactions;
+                <span class="badge bg-primary">@transactions.Count transactions found</span>
+            }
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Transactions != null && ((List<InjectionInspection.Models.Transaction>)ViewBag.Transactions).Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Description</th>
+                                <th>Company</th>
+                                <th class="text-end">Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in (List<InjectionInspection.Models.Transaction>)ViewBag.Transactions)
+                            {
+                                <tr>
+                                    <td>@transaction.Date.ToString("MMM dd, yyyy")</td>
+                                    <td><code>@transaction.ReferenceNumber</code></td>
+                                    <td>@transaction.Description</td>
+                                    <td>@transaction.Company</td>
+                                    <td class="text-end">
+                                        <span class="@(transaction.Amount >= 0 ? "text-success" : "text-danger")">
+                                            @(transaction.Amount >= 0 ? "+" : "")$@transaction.Amount.ToString("N2")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Detail", new { id = transaction.Id })" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (ViewBag.SearchPerformed == true)
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No transactions found matching your search criteria.</p>
+                    <small class="text-muted">Try adjusting your filters or search terms.</small>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h5 class="text-muted">Ready to search</h5>
+            <p class="text-muted">Enter your search criteria above and click "Search" to find transactions.</p>
+        </div>
+    </div>
+}
+
+@if (ViewBag.SearchType == "advanced")
+{
+    <div class="alert alert-warning mt-3">
+        <strong>⚠️ Advanced Search Mode Active</strong><br>
+        Advanced search provides more powerful query capabilities but may be slower for large datasets.
+    </div>
+}

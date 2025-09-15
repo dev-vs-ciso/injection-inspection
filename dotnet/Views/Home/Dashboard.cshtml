@@ -1,0 +1,224 @@
+@model InjectionInspection.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_Layout";
+}
+
+<div class="container my-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>Account: @Model.User.AccountNumber | @Model.User.FirstName @Model.User.LastName</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-wallet2 fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Current Balance</h6>
+                            <h4 class="card-title mb-0">$@Model.User.Balance.ToString("N2")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-arrow-down-circle fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Credits</h6>
+                            <h4 class="card-title mb-0">$@Model.TotalCredits.ToString("N2")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-arrow-up-circle fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Debits</h6>
+                            <h4 class="card-title mb-0">$@Model.TotalDebits.ToString("N2")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-activity fs-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-subtitle mb-1 text-white-50">Recent Activity</h6>
+                            <h4 class="card-title mb-0">@Model.RecentActivityCount</h4>
+                            <small class="text-white-50">Last 30 days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightning-charge me-2"></i>Quick Actions
+                    </h5>
+                    <div class="btn-group flex-wrap" role="group">
+                        <a href="@Url.Action("Search", "Transaction")" class="btn btn-outline-primary">
+                            <i class="bi bi-search me-2"></i>Search Transactions
+                        </a>
+                        <a href="@Url.Action("Archive", "Transaction")" class="btn btn-outline-info">
+                            <i class="bi bi-archive me-2"></i>Transaction Archive
+                        </a>
+                        <a href="@Url.Action("Profile", "Home")" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-2"></i>View Profile
+                        </a>
+                        <a href="@Url.Action("Export", "Transaction")" class="btn btn-outline-warning">
+                            <i class="bi bi-download me-2"></i>Export Data
+                        </a>
+                        <a href="@Url.Action("Import", "Transaction")" class="btn btn-outline-danger">
+                            <i class="bi bi-upload me-2"></i>Import Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-robot me-2"></i>AI-Powered Banking
+                    </h5>
+                    <div class="btn-group flex-wrap" role="group">
+                        <a href="@Url.Action("Research", "Ai")" class="btn btn-outline-info">
+                            <i class="bi bi-robot me-2"></i>AI Transaction Research
+                        </a>
+                        <a href="@Url.Action("LoanAdvisor", "Ai")" class="btn btn-outline-success">
+                            <i class="bi bi-cash-stack me-2"></i>AI Loan Advisor
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Recent Transactions
+                    </h5>
+                    <small class="text-muted">
+                        Showing latest @Model.RecentTransactions.Count transactions
+                    </small>
+                </div>
+                
+                <div class="card-body p-0">
+                    @if (Model.RecentTransactions != null && Model.RecentTransactions.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Company</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Balance</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var transaction in Model.RecentTransactions)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">@transaction.Date.ToString("MMM dd")</div>
+                                                <small class="text-muted">@transaction.Date.ToString("yyyy HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">@transaction.Company</div>
+                                                @if (!string.IsNullOrEmpty(transaction.Category))
+                                                {
+                                                    <small class="text-muted">@transaction.Category</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (transaction.TransactionType.ToLower() == "credit")
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-arrow-down me-1"></i>Credit
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">
+                                                        <i class="bi bi-arrow-up me-1"></i>Debit
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="@(transaction.TransactionType.ToLower() == "credit" ? "text-success" : "text-danger") fw-semibold">
+                                                    @(transaction.TransactionType.ToLower() == "credit" ? "+" : "-")$@transaction.Amount.ToString("N2")
+                                                </span>
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                $@transaction.BalanceAfter.ToString("N2")
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("Detail", "Transaction", new { id = transaction.Id })" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye me-1"></i>View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">No transactions found</h5>
+                            <p class="text-muted">Your transaction history will appear here once you have activity.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
